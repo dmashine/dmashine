@@ -40,7 +40,7 @@ template = u"""{{Озеро
 * Речной бассейн — %(Речной бассейн)s
 * Речной подбассейн — %(Речной подбассейн)s
 * Код по гидрологической изученности (ГИ) — %(Код по гидрологической изученности)s
-* Номер тома по ГИ — %(Номер тома по ГИ)s, %(Выпуск по ГИ)s
+* Номер тома по ГИ — %(Номер тома по ГИ)s
 * Выпуск по ГИ — %(Выпуск по ГИ)s
 
 == Примечания == 
@@ -141,7 +141,7 @@ class GVRList:
         self.conn.close()
 
 def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, botflag=True, dry=False):  
-    # save text to wiki
+    # save text to wiki or local file
     # TODO move somewhere
     page=wikipedia.Page(site, u"Участник:Drakosh/Озеро")
     if not dry:
@@ -152,11 +152,10 @@ def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, b
             print("Статья существует!")
             # save locally (not to wiki) to deal later
             f = open(u'%s.txt'%title, 'wb+')
-            #f.encoding="utf-8"
             f.write(text.encode('utf-8'))
             f.close()
             # return False
-        # save to wiki
+        #else: # save to wiki
         page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
       except wikipedia.LockedPage:
         wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
