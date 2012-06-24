@@ -95,7 +95,7 @@ class GVRObject:
                                     self._data[u"Вытекает"] = s[5:]
                             elif key == u"Бассейновый округ" or key == u"Речной бассейн" or key == u"Речной подбассейн":
                                 if s.find("(") >0:
-                                    self._data[key]=unicode(s[:s.find("(", -5)])
+                                    self._data[key]=unicode(s[:s.rfind("(")])
                             else: # get it 
                                 self._data[key]=unicode(s)
                         else: #first string in response is key, second is parameter
@@ -140,15 +140,23 @@ class GVRList:
     def __del__(self):
         self.conn.close()
 
-def save(text, minorEdit=True, botflag=True, dry=False):  
+def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, botflag=True, dry=False):  
     # save text to wiki
     # TODO move somewhere
-    # Статьи по названию name нет? пишем.
-    #   если есть - пишем в name(Озеро)
     page=wikipedia.Page(site, u"Участник:Drakosh/Озеро")
     if not dry:
       try:
-        # Сохраняем
+        #test if page already exists
+        page2=wikipedia.Page(site, title)
+        if page2.exists():            
+            print("Статья существует!")
+            # save locally (not to wiki) to deal later
+            f = open(u'%s.txt'%title, 'wb+')
+            #f.encoding="utf-8"
+            f.write(text.encode('utf-8'))
+            f.close()
+            # return False
+        # save to wiki
         page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
       except wikipedia.LockedPage:
         wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
@@ -162,13 +170,13 @@ def save(text, minorEdit=True, botflag=True, dry=False):
 if __name__=="__main__":
     site = wikipedia.getSite()
     
-    #gvrobj = GVRObject("150939")
-    #print template%gvrobj.get_data()
-    #save(template%gvrobj.get_data())
-    gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
-    r="__NOTOC__"
-    for o in gvrlist:
-        print o
-        r +=template%o.get_data()
-    save(r)
+    gvrobj = GVRObject("150939")
+    print template%gvrobj.get_data()
+    save(template%gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
+    #gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    #r="__NOTOC__"
+    #for o in gvrlist:
+    #    print o
+    #    r +=template%o.get_data()
+    #save(r)
     
