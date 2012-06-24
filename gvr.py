@@ -32,14 +32,25 @@ template = u"""{{Озеро
  |Позиционная карта 2      = 
  |Категория на Викискладе  = 
 }}
-'''%(Название)s''' — озеро в России. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s
-== По данным ГВР ==
-* Код водного объекта: %(Код водного объекта)s
-* Бассейновый округ: %(Бассейновый округ)s
-* Речной бассейн: %(Речной бассейн)s
-* Речной подбассейн: %(Речной подбассейн)s
-* Код по гидрологической изученности: %(Код по гидрологической изученности)s
-* Номер тома, выпуск по ГИ: %(Номер тома по ГИ)s, %(Выпуск по ГИ)s
+'''%(Название)s''' — озеро в России. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s км²
+== Данные водного реестра ==
+По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов <ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s}}</ref>
+* Код водного объекта — %(Код водного объекта)s
+* Бассейновый округ — %(Бассейновый округ)s
+* Речной бассейн — %(Речной бассейн)s
+* Речной подбассейн — %(Речной подбассейн)s
+* Код по гидрологической изученности (ГИ) — %(Код по гидрологической изученности)s
+* Номер тома по ГИ — %(Номер тома по ГИ)s, %(Выпуск по ГИ)s
+* Выпуск по ГИ — %(Выпуск по ГИ)s
+
+== Примечания == 
+{{примечания}} 
+
+== Ссылки == 
+* {{Водный реестр}}
+
+[[:Категория:Озёра Карелии]]
+<br clear="all">
 """
 
 class request:
@@ -59,6 +70,7 @@ class GVRObject:
         self._data={}
         self._data[u"Названия"] = ""
         self._data[u"Вытекает"] = ""
+        self._data[u"card"] = card
         self._conn.request("POST", "/gvr/index.php", self._params, self._headers)
         response = self._conn.getresponse()
         #print self._card, response.status, response.reason
@@ -76,6 +88,11 @@ class GVRObject:
                             elif key == u"Название" and s.find("(")>0:
                                 self._data[key] = s[:s.find("(")]
                                 self._data[u"Названия"] = s[s.find("(")+1:s.find(")")]
+                            elif key == u"Вытекает" and s.find(u"река")==0:
+                                if s.find("(") >0:
+                                    self._data[u"Вытекает"] = s[5:s.find("(")]
+                                else:
+                                    self._data[u"Вытекает"] = s[5:]
                             else: # get it 
                                 self._data[key]=unicode(s)
                         else: #first string in response is key, second is parameter
@@ -123,6 +140,8 @@ class GVRList:
 def save(text, minorEdit=True, botflag=True, dry=False):  
     # save text to wiki
     # TODO move somewhere
+    # Статьи по названию name нет? пишем.
+    #   если есть - пишем в name(Озеро)
     page=wikipedia.Page(site, u"Участник:Drakosh/Озеро")
     if not dry:
       try:
@@ -143,8 +162,8 @@ if __name__=="__main__":
     #gvrobj = GVRObject("150939")
     #print template%gvrobj.get_data()
     #save(template%gvrobj.get_data())
-    gvrlist = GVRList(bo="1", rb="67", subb="86", wot="11")
-    r=""
+    gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    r="__NOTOC__"
     for o in gvrlist:
         print o
         r +=template%o.get_data()
