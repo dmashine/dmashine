@@ -1,7 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8-*-
-import httplib, urllib, re
+import httplib, urllib, re, wikipedia
 #from threading import Thread
+
+template = u"""{{Озеро
+ |Название                 = %(Название)s
+  |Национальное название   = %(Названия)s
+ |Изображение              = 
+  |Подпись                 = 
+  |lat_dir = N|lat_deg = |lat_min = |lat_sec = 
+  |lon_dir = E|lon_deg = |lon_min = |lon_sec = 
+  |region                  = 
+  |CoordScale              = 
+ |Страна                   = Россия
+  |Регион                  = 
+ |Высота над уровнем моря  = 
+ |Длина                    = 
+ |Ширина                   = 
+ |Площадь                  = %(Площадь водоёма)s
+ |Объём                    = 
+ |Длина береговой линии    = 
+ |Наибольшая глубина       = 
+  |Средняя глубина         = 
+ |Тип минерализации        = 
+  |Солёность               = 
+ |Прозрачность             = 
+ |Площадь водосбора        = %(Водосборная площадь)s
+  |Впадающие реки          = 
+  |Вытекающая река         = %(Вытекает)s
+ |Позиционная карта 1      = 
+ |Позиционная карта 2      = 
+ |Категория на Викискладе  = 
+}}
+'''%(Название)s''' — озеро в России. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s
+== По данным ГВР ==
+* Код водного объекта: %(Код водного объекта)s
+* Бассейновый округ: %(Бассейновый округ)s
+* Речной бассейн: %(Речной бассейн)s
+* Речной подбассейн: %(Речной подбассейн)s
+* Код по гидрологической изученности: %(Код по гидрологической изученности)s
+* Номер тома, выпуск по ГИ: %(Номер тома по ГИ)s, %(Выпуск по ГИ)s
+"""
 
 class request:
     def __init__():
@@ -18,6 +57,8 @@ class GVRObject:
         self._params = urllib.urlencode({'card': card})
         self._headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
         self._data={}
+        self._data[u"Названия"] = ""
+        self._data[u"Вытекает"] = ""
         self._conn.request("POST", "/gvr/index.php", self._params, self._headers)
         response = self._conn.getresponse()
         #print self._card, response.status, response.reason
@@ -28,9 +69,16 @@ class GVRObject:
                 key=""
                 for s in re.split('<.+?>', l):
                     if s<>"":
-                        if key<>"":            
-                            self._data[key]=unicode(s)
-                        else:
+                        if key<>"":
+                            # workarounds for different keys
+                            if key == u"Площадь водоёма" or key == u"Водосборная площадь":
+                                self._data[key]=unicode(s[:-9])
+                            elif key == u"Название" and s.find("(")>0:
+                                self._data[key] = s[:s.find("(")]
+                                self._data[u"Названия"] = s[s.find("(")+1:s.find(")")]
+                            else: # get it 
+                                self._data[key]=unicode(s)
+                        else: #first string in response is key, second is parameter
                             key=unicode(s)
     def get_data(self):
         return self._data
@@ -71,12 +119,34 @@ class GVRList:
         return GVRObject(self._data.pop(0))
     def __del__(self):
         self.conn.close()
+
+def save(text, minorEdit=True, botflag=True, dry=False):  
+    # save text to wiki
+    # TODO move somewhere
+    page=wikipedia.Page(site, u"Участник:Drakosh/Озеро")
+    if not dry:
+      try:
+        # Сохраняем
+        page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
+      except wikipedia.LockedPage:
+        wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
+      except wikipedia.EditConflict:
+        wikipedia.output(u'Пропускаю %s, конфликт правок'% (page.title()))
+      except wikipedia.SpamfilterError, error:
+        wikipedia.output(u'Пропущена страница %s, не пускает спамфильтр %s' % (page.title(), error.url))
+      else:
+        return True
+      return False
 if __name__=="__main__":
+    site = wikipedia.getSite()
+    
     #gvrobj = GVRObject("150939")
-    #print gvrobj
-    #print u"Название: %s"%gvrobj.get_data()[u"Название"]
+    #print template%gvrobj.get_data()
+    #save(template%gvrobj.get_data())
     gvrlist = GVRList(bo="1", rb="67", subb="86", wot="11")
+    r=""
     for o in gvrlist:
         print o
-        print u"Название: %s"%o.get_data()[u"Название"]
+        r +=template%o.get_data()
+    save(r)
     
