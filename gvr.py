@@ -34,7 +34,7 @@ template = u"""{{Озеро
 }}
 '''%(Название)s''' — озеро в России. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s км²
 == Данные водного реестра ==
-По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов <ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s}}</ref>
+По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов<ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s}}</ref>
 * Код водного объекта — %(Код водного объекта)s
 * Бассейновый округ — %(Бассейновый округ)s
 * Речной бассейн — %(Речной бассейн)s
@@ -86,13 +86,16 @@ class GVRObject:
                             if key == u"Площадь водоёма" or key == u"Водосборная площадь":
                                 self._data[key]=unicode(s[:-9])
                             elif key == u"Название" and s.find("(")>0:
-                                self._data[key] = s[:s.find("(")]
-                                self._data[u"Названия"] = s[s.find("(")+1:s.find(")")]
+                                self._data[key] = unicode(s[:s.find("(")])
+                                self._data[u"Названия"] = unicode(s[s.find("(")+1:s.find(")")])
                             elif key == u"Вытекает" and s.find(u"река")==0:
                                 if s.find("(") >0:
-                                    self._data[u"Вытекает"] = s[5:s.find("(")]
+                                    self._data[u"Вытекает"] = unicode(s[5:s.find("(")])
                                 else:
                                     self._data[u"Вытекает"] = s[5:]
+                            elif key == u"Бассейновый округ" or key == u"Речной бассейн" or key == u"Речной подбассейн":
+                                if s.find("(") >0:
+                                    self._data[key]=unicode(s[:s.find("(", -5)])
                             else: # get it 
                                 self._data[key]=unicode(s)
                         else: #first string in response is key, second is parameter
