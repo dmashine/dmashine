@@ -3,8 +3,7 @@
 # Скрипт разделяет статьи, предложенные к улучшению в ru.wikipedia
 #   по тематическим страницам. Извиняюсь за мешанину с unicode(хотя старался исправить) и стиль.
 # Автор: http://ru.wikipedia.org/wiki/Участник:Drakosh
-# Лицензирование: Общественное достояние / Beerware. Допускается любое
-#   распространение и использование, а если меня встретите - налейте пива!
+# Лицензирование: GNU GPL v3 / Beerware.
 # Для длинных списков <div style="height:200px; overflow:auto; padding:3px"></div>
 
 import traceback, exceptions, datetime, sys, locale

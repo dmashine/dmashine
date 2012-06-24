@@ -1,3 +1,7 @@
+# interface for CategoryIntersect script
+# Author Drakosh <cpsoft@gmail.com>
+# License GNU GPL v3 / Beerware
+
 import httplib, urllib
 class CategoryIntersect:
   # Iterator over category intersection. uses toolserver to get a list.
