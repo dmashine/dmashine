@@ -43,6 +43,8 @@ template = u"""{{Озеро
 * Номер тома по ГИ — %(Номер тома по ГИ)s
 * Выпуск по ГИ — %(Выпуск по ГИ)s
 
+%(Реки)s
+
 == Примечания == 
 {{примечания}} 
 
@@ -65,14 +67,15 @@ class GVRObject:
     def __init__(self, card):
         conn = httphelp()
         conn.server     = "textual.ru"
+        conn.codepage   = "windows-1251" 
         conn.scriptname = "/gvr/index.php"
-        conn.parameters = {'card': card}
-        conn.codepage = "windows-1251"     
+        conn.parameters = {'card': card}    
     
         self._card = card
         self._data={}
         self._data[u"Названия"] = ""
         self._data[u"Вытекает"] = ""
+        self._data[u"Реки"] = ""
         self._data[u"card"] = card
 
         #print self._card, response.status, response.reason
@@ -87,7 +90,7 @@ class GVRObject:
                             if key == u"Площадь водоёма" or key == u"Водосборная площадь":
                                 self._data[key]=unicode(s[:-9])
                             elif key == u"Название" and s.find("(")>0:
-                                self._data[key] = unicode(s[:s.find("(")])
+                                self._data[key] = unicode(s[:s.find("(")-1])
                                 self._data[u"Названия"] = unicode(s[s.find("(")+1:s.find(")")])
                             elif key == u"Вытекает" and s.find(u"река")==0:
                                 if s.find("(") >0:
@@ -101,6 +104,12 @@ class GVRObject:
                                 self._data[key]=unicode(s)
                         else: #first string in response is key, second is parameter
                             key=unicode(s)
+            if l.find(u'<td valign="top"><a href="')>=0:
+                    # get rivers from page
+                    # TODO add this to template part
+                    l=l.replace("<br>", ", ")
+                    l = re.sub( "<.+?>", "", l)
+                    self._data[u"Реки"] = u"В озеро впадают: "+unicode(l)
     def get_data(self):
         return self._data
     def __repr__(self):
@@ -113,9 +122,10 @@ class GVRList:
         # http://textual.ru/gvr/index.php?bo=1&rb=68&subb=0&hep=0&wot=11&name=&num=&loc=&s=%CF%EE%E8%F1%EA
         conn = httphelp()
         conn.server     = "textual.ru"
+        conn.codepage   = "windows-1251"
         conn.scriptname = "/gvr/index.php"
         conn.parameters = {'bo': bo, "rb":rb, "subb":subb, "hep":hep, "wot": wot, "name":name, "num":num, "loc":loc, "start":start}
-        conn.codepage = "windows-1251"
+
         self._data=[]
         for l in conn.lines():
             b=l.find('/gvr/index.php?card=')
@@ -147,9 +157,9 @@ def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, b
         if page2.exists():            
             print("Статья существует!")
             # save locally (not to wiki) to deal later
-            f = open(u'%s.txt'%title, 'wb+')
-            f.write(text.encode('utf-8'))
-            f.close()
+            # f = open(u'%s.txt'%title, 'wb+')
+            # f.write(text.encode('utf-8'))
+            # f.close()
             # return False
         #else: # save to wiki
         page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
@@ -165,7 +175,7 @@ def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, b
 if __name__=="__main__":
     site = wikipedia.getSite()
     
-    #gvrobj = GVRObject("150939")
+    gvrobj = GVRObject("150939")
     #print template%gvrobj.get_data()
     #save(template%gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
     gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
