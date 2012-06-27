@@ -23,7 +23,6 @@ months={'01':u'января',
         '10':u'октября',
         '11':u'ноября',
         '12':u'декабря'}
-# TODO move online
 base={#u'Авиация':'Aвиация',
 # u'Адмиралтейство':'Флот',
  u'Азербайджан':'Азербайджан',
@@ -76,9 +75,7 @@ class CleanupTematic(Thread):
       return False
   
   def addline(self, article):
-    """ Получает название статьи
-    Возвращает строку для таблицы
-    """
+    """ Gets article name. Returns string- one line of table. """
     p=wikipedia.Page(site, article)
     title=p.titleWithoutNamespace()
     param=''
@@ -88,23 +85,23 @@ class CleanupTematic(Thread):
             param= tl[1][0]
           except:
             wikipedia.output(u"Статья %s без даты выставления! "%(article))
-            # TODO: Проставить в шаблоне дату и завести раздел КУЛ. Но проще вручную
             self.text+= u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n'%(article) # afi date not found
             return
           break
     if param=='':
-      self.text+= u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n'%(article) # чепуха какаято, категория есть а шаблона нет
+      self.text+= u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n'%(article)
+      # what a mess, has a category, and no template
       return
     try:  
       month=months[param[5:7]] # Словесное название месяца из даты
       year=param[0:4]
       date=param[8:10]
-      if date[0]=='0': # убираем незначащий 0 из даты
+      if date[0]=='0': # remove non-significant 0 from date
         date=date[1]
       d=datetime.date(int(year), int(param[5:7]), int(date))
       style=""
       past=(datetime.date.today()-d).days
-      if past > 180: # подсветка по сроку со дня выставления
+      if past > 180: # lighting by due date from the date of nomination
         style='class="bright"|'
       elif past > 90:
         style='class="highlight"|'
@@ -113,10 +110,10 @@ class CleanupTematic(Thread):
       return
 
     # Определяем рост статьи с момента выставления шаблона
-    edits=len(p.getVersionHistory(False, False, True)) #количество сделанных правок
+    edits=len(p.getVersionHistory(False, False, True)) #number of edits made
     size1=0; oldid=0 #инициализация переменных чтоб не падало
     for l in p.fullVersionHistory(False, False, True):
-      try: #TODO test coding
+      try:
          text=l[3].decode("utf-8", "ignore") 
       except:
          text=l[3]
@@ -148,11 +145,10 @@ class CleanupTematic(Thread):
       return
     self.text+="|}"
     self.save()
-# Стартовая точка
+# start point
 site = wikipedia.getSite()
-if len(sys.argv)>=2: # Переданы аргументы
+if len(sys.argv)>=2: # got arguments in command line
   for i in sys.argv[1:]:
-    #TODO test codepage in windows
     #j=unicode(i, "mbcs") # windows
     j=unicode(i, locale.getpreferredencoding())
     th=CleanupTematic(j, base[j])

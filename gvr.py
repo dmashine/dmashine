@@ -13,7 +13,7 @@ template = u"""{{Озеро
   |region                  = 
   |CoordScale              = 
  |Страна                   = Россия
-  |Регион                  = 
+  |Регион                  = Карелия
  |Высота над уровнем моря  = 
  |Длина                    = 
  |Ширина                   = 
@@ -32,7 +32,7 @@ template = u"""{{Озеро
  |Позиционная карта 2      = 
  |Категория на Викискладе  = 
 }}
-'''%(Название)s''' — озеро в России. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s км²
+'''%(Название)s''' — озеро в России, республика Карелия. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s км²
 == Данные водного реестра ==
 По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов<ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s}}</ref>
 * Код водного объекта — %(Код водного объекта)s
@@ -42,9 +42,9 @@ template = u"""{{Озеро
 * Код по гидрологической изученности (ГИ) — %(Код по гидрологической изученности)s
 * Номер тома по ГИ — %(Номер тома по ГИ)s
 * Выпуск по ГИ — %(Выпуск по ГИ)s
-
 %(Реки)s
 
+{{tl|Непровернное озеро}}
 == Примечания == 
 {{примечания}} 
 
@@ -54,10 +54,6 @@ template = u"""{{Озеро
 [[:Категория:Озёра Карелии]]
 <br clear="all">
 """
-
-class request:
-    def __init__():
-        pass
 
 class GVRException(Exception):
     pass
@@ -78,7 +74,6 @@ class GVRObject:
         self._data[u"Реки"] = ""
         self._data[u"card"] = card
 
-        #print self._card, response.status, response.reason
 
         for l in conn.lines():
             if l.find('class="cardv"')>0:
@@ -96,7 +91,7 @@ class GVRObject:
                                 if s.find("(") >0:
                                     self._data[u"Вытекает"] = unicode(s[5:s.find("(")])
                                 else:
-                                    self._data[u"Вытекает"] = s[5:]
+                                    self._data[u"Вытекает"] = unicode(s[5:])
                             elif key == u"Бассейновый округ" or key == u"Речной бассейн" or key == u"Речной подбассейн":
                                 if s.find("(") >0:
                                     self._data[key]=unicode(s[:s.rfind("(")])
@@ -109,7 +104,7 @@ class GVRObject:
                     # TODO add this to template part
                     l=l.replace("<br>", ", ")
                     l = re.sub( "<.+?>", "", l)
-                    self._data[u"Реки"] = u"В озеро впадают: "+unicode(l)
+                    self._data[u"Реки"] = u"\nВ озеро впадают: "+unicode(l)
     def get_data(self):
         return self._data
     def __repr__(self):
