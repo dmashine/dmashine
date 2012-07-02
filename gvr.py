@@ -44,7 +44,7 @@ template = u"""{{Озеро
 * Выпуск по ГИ — %(Выпуск по ГИ)s
 %(Реки)s
 
-{{tl|Непровернное озеро}}
+{{tl|Непроверенное озеро}}
 == Примечания == 
 {{примечания}} 
 
@@ -150,11 +150,12 @@ def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, b
         #test if page already exists
         page2=wikipedia.Page(site, title)
         if page2.exists():            
-            print("Статья существует!")
+            print(u"Статья существует!")
             # save locally (not to wiki) to deal later
-            # f = open(u'%s.txt'%title, 'wb+')
-            # f.write(text.encode('utf-8'))
-            # f.close()
+            title2=u"Озеро"
+            f = open(u'./%s.txt'%title2, 'w+')
+            f.write(text.encode('utf-8'))
+            f.close()
             # return False
         #else: # save to wiki
         page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
