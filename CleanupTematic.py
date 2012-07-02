@@ -8,6 +8,7 @@
 
 import traceback, exceptions, datetime, sys, locale
 import wikipedia
+import httphelp
 from threading import Thread
 from CategoryIntersect import CategoryIntersect
 
@@ -57,22 +58,7 @@ class CleanupTematic(Thread):
     self.catname=catname
     self.text=''
   def save(self, minorEdit=True, botflag=True, dry=False):
-  # save text to wiki
-    #page=wikipedia.Page(site, u"Участник:Drakosh/Test/"+self.pagename)
-    page=wikipedia.Page(site, u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename)
-    if not dry:
-      try:
-        # Сохраняем
-        page.put(self.text,  u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minorEdit=minorEdit, botflag=True)
-      except wikipedia.LockedPage:
-        wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
-      except wikipedia.EditConflict:
-        wikipedia.output(u'Пропускаю %s, конфликт правок'% (page.title()))
-      except wikipedia.SpamfilterError, error:
-        wikipedia.output(u'Пропущена страница %s, не пускает спамфильтр %s' % (page.title(), error.url))
-      else:
-        return True
-      return False
+    httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minorEdit=minorEdit, botflag=botflag)
   
   def addline(self, article):
     """ Gets article name. Returns string- one line of table. """

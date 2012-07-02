@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8-*-
 import re, wikipedia
-from httphelp import httphelp
+from httphelp import *
 
 template = u"""{{Озеро
  |Название                 = %(Название)s
@@ -141,33 +141,6 @@ class GVRList:
           raise StopIteration	
         return GVRObject(self._data.pop(0))
 
-def save(text, title = u"Участник:Drakosh/Озеро", minorEdit=True, botflag=True, dry=False):  
-    # save text to wiki or local file
-    # TODO move somewhere
-    page=wikipedia.Page(site, u"Участник:Drakosh/Озеро")
-    if not dry:
-      try:
-        #test if page already exists
-        page2=wikipedia.Page(site, title)
-        if page2.exists():            
-            print(u"Статья существует!")
-            # save locally (not to wiki) to deal later
-            title2=u"Озеро"
-            f = open(u'./%s.txt'%title2, 'w+')
-            f.write(text.encode('utf-8'))
-            f.close()
-            # return False
-        #else: # save to wiki
-        page.put(text,  u"Тестовая заливка озер", minorEdit=minorEdit, botflag=True)
-      except wikipedia.LockedPage:
-        wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
-      except wikipedia.EditConflict:
-        wikipedia.output(u'Пропускаю %s, конфликт правок'% (page.title()))
-      except wikipedia.SpamfilterError, error:
-        wikipedia.output(u'Пропущена страница %s, не пускает спамфильтр %s' % (page.title(), error.url))
-      else:
-        return True
-      return False
 if __name__=="__main__":
     site = wikipedia.getSite()
     
@@ -178,6 +151,6 @@ if __name__=="__main__":
     r="__NOTOC__"
     for o in gvrlist:
         print o
-        r +=template%o.get_data()
-    save(r)
+        data=o.get_data()
+        save(site, text=(template%data), pagename=data[u"Название"],filename=u"/home/drakosh/озера/%s.txt"%data[u"Название"], dry=True, comment="Заливка озер")
     
