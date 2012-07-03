@@ -23,6 +23,11 @@ class httphelp:
 def save(site, text="", pagename = None, filename = None, comment=None, minorEdit=True, botflag=True, dry=False):
 # helper fun to save text to wiki
     page=wikipedia.Page(site, pagename)
+    if (filename <> None) and (page.exists()): # need to save locally, do not overwrite
+        f = open(filename, 'w+')
+        f.write(text.encode('utf-8'))
+        f.close()
+        return
     if not dry:
         try:
             page.put(text, comment, minorEdit=minorEdit, botflag=botflag)
@@ -32,9 +37,6 @@ def save(site, text="", pagename = None, filename = None, comment=None, minorEdi
             wikipedia.output(u'Пропускаю %s, конфликт правок'% (page.title()))
         except wikipedia.SpamfilterError, error:
             wikipedia.output(u'Пропущена страница %s, не пускает спамфильтр %s' % (page.title(), error.url))
-    if filename <> None: # need to save locally
-        f = open(filename, 'w+')
-        f.write(text.encode('utf-8'))
-        f.close()
+
     
 
