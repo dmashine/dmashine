@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8-*-
-import re, wikipedia
+import re, wikipedia, datetime
 from httphelp import *
 
 template = u"""{{Озеро
@@ -33,8 +33,10 @@ template = u"""{{Озеро
  |Категория на Викискладе  = 
 }}
 '''%(Название)s''' — озеро в России, республика Карелия. Местоположение - %(Местоположение)s. Площадь водоёма %(Площадь водоёма)s км²
+
+%(Реки)s
 == Данные водного реестра ==
-По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов<ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s}}</ref>
+По данным геоинформационной системы водохозяйственного районирования территории РФ, подготовленной Федеральным агентством водных ресурсов<ref name='МПР России'>{{cite web|url=http://textual.ru/gvr/index.php?card=%(card)s|title=Государственный водный реестр РФ: %(Название)s|accessdate=%(accessdate)s}}</ref>
 * Код водного объекта — %(Код водного объекта)s
 * Бассейновый округ — %(Бассейновый округ)s
 * Речной бассейн — %(Речной бассейн)s
@@ -42,7 +44,6 @@ template = u"""{{Озеро
 * Код по гидрологической изученности (ГИ) — %(Код по гидрологической изученности)s
 * Номер тома по ГИ — %(Номер тома по ГИ)s
 * Выпуск по ГИ — %(Выпуск по ГИ)s
-%(Реки)s
 
 {{tl|Непроверенное озеро}}
 == Примечания == 
@@ -73,7 +74,7 @@ class GVRObject:
         self._data[u"Вытекает"] = ""
         self._data[u"Реки"] = ""
         self._data[u"card"] = card
-
+        self._data[u"accessdate"] = datetime.date.today()
 
         for l in conn.lines():
             if l.find('class="cardv"')>0:
@@ -83,7 +84,11 @@ class GVRObject:
                         if key<>"":
                             # workarounds for different keys
                             if key == u"Площадь водоёма" or key == u"Водосборная площадь":
-                                self._data[key]=unicode(s[:-9])
+                                if s.find("0")<>0 and s.find("999")<>0:
+                                    # data errors
+                                    self._data[key] = unicode(s[:-9])                                
+                                else:
+                                    self._data[key] = ""
                             elif key == u"Название" and s.find("(")>0:
                                 self._data[key] = unicode(s[:s.find("(")-1])
                                 self._data[u"Названия"] = unicode(s[s.find("(")+1:s.find(")")])
