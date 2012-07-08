@@ -15,16 +15,20 @@ class search:
         file.close()
         dom = parseString(data)
 
-        xmlTag = dom.getElementsByTagName('place') # 
-        print len(xmlTag)
-        for tag in xmlTag:
-            print tag.getAttribute("display_name")
-            print tag.getAttribute("lat")
-            print tag.getAttribute("lon")
-            print tag.getElementsByTagName("administrative")[0].childNodes[0].data
-            print tag.getElementsByTagName("state")[0].childNodes[0].data
-            print tag.getElementsByTagName("county")[0].childNodes[0].data
-            print tag.getElementsByTagName("city")[0].childNodes[0].data
+        xmlTag = dom.getElementsByTagName('place')
+        
+        self._data={}
+        if len(xmlTag) == 1:
+            # collect all attributes forom attribites and child nodes to data
+            attr=xmlTag[0].attributes
+            for i in range(0, attr.length):
+                self._data[attr.item(i).name] = attr.item(i).value
+            for c in xmlTag[0].childNodes:
+                self._data[c.tagName] = c.childNodes[0].data
 
+    def get_data(self):
+        return self._data
 if __name__=="__main__":
     s=search(u"Шотозеро")
+    for d in s.get_data():
+        print "%s: %s"%(d, s.get_data()[d])
