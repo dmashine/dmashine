@@ -107,9 +107,18 @@ class GVRObject:
             if l.find(u'<td valign="top"><a href="')>=0:
                     # get rivers from page
                     # TODO add this to template part
-                    l=l.replace("<br>", ", ")
-                    l = re.sub( "<.+?>", "", l)
-                    self._data[u"Реки"] = u"\nВ озеро впадают: "+unicode(l)
+                    #l=l.replace("<br>", ", ")
+                    s=u""
+                    for l in re.split( "<.+?>", l):
+                        if l=="":
+                            continue
+                        a=l.find(" ")+1
+                        b=l.find("(")-1
+                        if b==-2: b=len(l)
+                        s+=l[:a]+u"[["+l[a:b]+u"]]"+l[b:]+", "
+                    s=s[:-2]+"."
+                    print s
+                    self._data[u"Реки"] = s
     def get_data(self):
         return self._data
     def __repr__(self):
@@ -152,10 +161,10 @@ if __name__=="__main__":
     gvrobj = GVRObject("150939")
     #print template%gvrobj.get_data()
     #save(template%gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
-    gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
-    r="__NOTOC__"
-    for o in gvrlist:
-        print o
-        data=o.get_data()
-        save(site, text=(template%data), pagename=data[u"Название"],filename=u"/home/drakosh/озера/%s.txt"%data[u"Название"], dry=True, comment="Заливка озер")
+    #gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    #r="__NOTOC__"
+    #for o in gvrlist:
+    #    print o
+    #    data=o.get_data()
+    #    save(site, text=(template%data), pagename=data[u"Название"],filename=u"/home/drakosh/озера/%s.txt"%data[u"Название"], dry=True, comment="Заливка озер")
     
