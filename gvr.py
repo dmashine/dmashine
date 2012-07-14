@@ -106,13 +106,11 @@ class GVRObject:
                             key=unicode(s)
             if l.find(u'<td valign="top"><a href="')>=0:
                     # get rivers from page
-                    # TODO add this to template part
-                    #l=l.replace("<br>", ", ")
-                    s=u""
+                    s=u"\nВ озеро впадают: "
                     for l in re.split( "<.+?>", l):
                         if l=="":
                             continue
-                        a=l.find(" ")+1
+                        a=l.find(" ")+1 # wikification
                         b=l.find("(")-1
                         if b==-2: b=len(l)
                         s+=l[:a]+u"[["+l[a:b]+u"]]"+l[b:]+", "

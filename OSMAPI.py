@@ -9,7 +9,7 @@ from xml.dom.minidom import parseString
 
 class search:
     def __init__(self, s):
-        self._s=urllib.urlencode({"q":s.encode("UTF-8"), "format":"xml", "addressdetails":1, "type":"water"})
+        self._s=urllib.urlencode({"q":s.encode("UTF-8"), "format":"xml", "addressdetails":1, "type":"water", "email":"cpsoft@gmail.com"})
         file = urllib.urlopen('http://nominatim.openstreetmap.org/search?%s'%self._s)
         data = file.read()
         file.close()
@@ -25,7 +25,14 @@ class search:
                 self._data[attr.item(i).name] = attr.item(i).value
             for c in xmlTag[0].childNodes:
                 self._data[c.tagName] = c.childNodes[0].data
-
+        else:
+            if (len(xmlTag) == 0) and (s.find("-")>0 or s.find("-")>0):
+                # no data found. maybe incorrect name.
+                print u"Данных не найдено, включаю интеллектуальный поиск"
+                s2=s.replace("-","").replace(" ","")
+                self._data = search(s2).get_data()
+                if self._data<>{}:
+                    print u"найдено!"
     def get_data(self):
         return self._data
 if __name__=="__main__":
