@@ -32,7 +32,7 @@ template = u"""{{Озеро
  |Позиционная карта 2      = 
  |Категория на Викискладе  = 
 }}
-'''%(Название)s''' — озеро в России, республика Карелия. Площадь водоёма %(Площадь водоёма)s км²
+'''%(Название)s''' — озеро в России, %(state)s, %(county)s, %(city)s. Площадь водоёма %(Площадь водоёма)s км²
 
 Описание местоположения — %(Местоположение)s
 
@@ -53,18 +53,29 @@ template = u"""{{Озеро
 
 == Ссылки == 
 * {{Водный реестр}}
+* [http://nominatim.openstreetmap.org/details.php?place_id=%(place_id)s Данные базы] [[OpenStreetMap]]
 
 [[:Категория:Озёра Карелии]]
 <br clear="all">
 """
 
 if __name__=="__main__":
-    gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    a=0
+    gvrlist=[gvr.GVRObject("150490")]
     for gvrobj in gvrlist:
-        name=gvrobj.get_data()[u"Название"]
-        print name
-        osm=OSMAPI.search(name)
-        d=gvrobj.get_data()
-        d.update(osm.get_data())
-        for i in d:
-            print "%s: %s"%(i, d[i])
+        try:
+            name=gvrobj.get_data()[u"Название"]
+            # print name
+            # TODO: Собрать все варианты названия из gvrobj и последовательно искать в OSMAPI
+            osm=OSMAPI.search(name)
+        
+            d=gvrobj.get_data()
+            d.update(osm.get_data())
+            a+=1
+            for i in d:
+                print "%s: %s"%(i, d[i])
+            print a
+            print template%d
+        except OSMAPI.OSMAPIException:
+            pass
