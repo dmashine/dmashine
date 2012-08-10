@@ -8,8 +8,8 @@ template = u"""{{Озеро
   |Национальное название   = %(Названия)s
  |Изображение              = 
   |Подпись                 = 
-  |lat_dir = N|lat_deg = |lat_min = |lat_sec = 
-  |lon_dir = E|lon_deg = |lon_min = |lon_sec = 
+  |lat_dir = N|lat_deg =  %(lat_deg)0d |lat_min = %(lat_min)0d|lat_sec = %(lat_sec)0d
+  |lon_dir = E|lon_deg =  %(lon_deg)0d |lon_min = %(lon_min)0d|lon_sec = %(lon_sec)0d
   |region                  = 
   |CoordScale              = 
  |Страна                   = Россия
@@ -58,7 +58,11 @@ template = u"""{{Озеро
 [[:Категория:Озёра Карелии]]
 <br clear="all">
 """
-
+def decdeg2dms(dd):
+    # http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python
+    mnt,sec = divmod(dd*3600,60)
+    deg,mnt = divmod(mnt,60)
+    return deg,mnt,sec
 if __name__=="__main__":
     #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
     a=0
@@ -72,6 +76,8 @@ if __name__=="__main__":
         
             d=gvrobj.get_data()
             d.update(osm.get_data())
+            d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
+            d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
             a+=1
             for i in d:
                 print "%s: %s"%(i, d[i])

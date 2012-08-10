@@ -7,8 +7,15 @@
 import urllib
 from xml.dom.minidom import parseString
 
+def decdeg2dms(dd):
+    """see http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python"""
+    mnt,sec = divmod(dd*3600,60)
+    deg,mnt = divmod(mnt,60)
+    return deg,mnt,sec
+
 class OSMAPIException(Exception):
   pass
+  
 class search:
     def __init__(self, s):
         self._s=urllib.urlencode({"q":s.encode("UTF-8"), "format":"xml", "addressdetails":1, "type":"water", "email":"cpsoft@gmail.com"})
@@ -28,6 +35,7 @@ class search:
             for c in xmlTag[0].childNodes:
                 self._data[c.tagName] = c.childNodes[0].data
         if self._data == {}:
+            # no data collected
             raise OSMAPIException
     def get_data(self):
         if self._data<>{}:
