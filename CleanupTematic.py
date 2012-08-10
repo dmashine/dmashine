@@ -98,18 +98,21 @@ class CleanupTematic(Thread):
     # Определяем рост статьи с момента выставления шаблона
     edits=len(p.getVersionHistory(False, False, True)) #number of edits made
     size1=0; oldid=0 #инициализация переменных чтоб не падало
-    for l in p.fullVersionHistory(False, False, True):
-      try:
-         text=l[3].decode("utf-8", "ignore") 
-      except:
-         text=l[3]
-      edits=edits-1 #эта правка без шаблона
-      if (text.find(u'{{к улучшению') <> -1) or (text.find(u'{{К улучшению') <> -1):
-        oldid=l[0] #первая версия, где стоит шаблон
-        size1=len(text) # её объём
-        break
-    # Гдето тут падает, если у статьи длинная история.
-    diff=len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
+    try:
+        for l in p.fullVersionHistory(False, False, True):
+          try:
+             text=l[3].decode("utf-8", "ignore") 
+          except:
+             text=l[3]
+          edits=edits-1 #эта правка без шаблона
+          if (text.find(u'{{к улучшению') <> -1) or (text.find(u'{{К улучшению') <> -1):
+            oldid=l[0] #первая версия, где стоит шаблон
+            size1=len(text) # её объём
+            break
+        diff=len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
+    except:
+        self.text+= u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n'%(article)
+        return            
     wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s")%(title, self.pagename, param, diff, edits))
     self.text+= u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n"%(style, article, style, date, month, year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
   
