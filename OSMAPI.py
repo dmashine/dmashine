@@ -7,12 +7,6 @@
 import urllib
 from xml.dom.minidom import parseString
 
-def decdeg2dms(dd):
-    """see http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python"""
-    mnt,sec = divmod(dd*3600,60)
-    deg,mnt = divmod(mnt,60)
-    return deg,mnt,sec
-
 class OSMAPIException(Exception):
   pass
   
