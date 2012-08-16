@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 import gvr, OSMAPI
+import wikipedia
+from httphelp import *
 
 template = u"""{{Озеро
  |Название                 = %(Название)s
@@ -28,8 +30,8 @@ template = u"""{{Озеро
  |Площадь водосбора        = %(Водосборная площадь)s
   |Впадающие реки          = 
   |Вытекающая река         = %(Вытекает)s
- |Позиционная карта 1      = 
- |Позиционная карта 2      = 
+ |Позиционная карта 1      = Россия Республика Карелия
+ |Позиционная карта 2      = Россия Карелия %(county)s
  |Категория на Викискладе  = 
 }}
 '''%(Название)s''' — озеро в России, %(state)s, %(county)s, %(city)s. Площадь водоёма %(Площадь водоёма)s км²
@@ -64,24 +66,36 @@ def decdeg2dms(dd):
     deg,mnt = divmod(mnt,60)
     return deg,mnt,sec
 if __name__=="__main__":
-    #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
     a=0
-    gvrlist=[gvr.GVRObject("150490")]
+    #gvrlist=[gvr.GVRObject("150490")]
+    site = wikipedia.getSite()
     for gvrobj in gvrlist:
         try:
             name=gvrobj.get_data()[u"Название"]
-            # print name
-            # TODO: Собрать все варианты названия из gvrobj и последовательно искать в OSMAPI
-            osm=OSMAPI.search(name)
-        
+            osm=None
+            try:
+                osm=OSMAPI.search(name)
+            except OSMAPI.OSMAPIException: # first name isn`t found, lets try other
+                print u"%s не найдено, перебор вариантов"%name
+                for s in gvrobj.get_data()[u"Названия"].split(","):
+                    try:
+                        osm=OSMAPI.search(s.strip())
+                        print u"Найден вариант %s"%s
+                        break
+                    except OSMAPI.OSMAPIException:
+                        pass
+                if osm==None:
+                    raise OSMAPI.OSMAPIException
+                            
             d=gvrobj.get_data()
             d.update(osm.get_data())
             d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
             d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
             a+=1
-            for i in d:
-                print "%s: %s"%(i, d[i])
-            print a
-            print template%d
+            #for i in d:
+            #    print "%s: %s"%(i, d[i])
+            #print name
+            #save(site, text=(template%d), pagename=d[u"Название"],filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"], dry=True, comment="Заливка озер")
         except OSMAPI.OSMAPIException:
             pass

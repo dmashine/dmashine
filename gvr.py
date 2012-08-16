@@ -115,7 +115,6 @@ class GVRObject:
                         if b==-2: b=len(l)
                         s+=l[:a]+u"[["+l[a:b]+u"]]"+l[b:]+", "
                     s=s[:-2]+"."
-                    print s
                     self._data[u"Реки"] = s
     def get_data(self):
         return self._data

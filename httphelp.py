@@ -23,7 +23,9 @@ class httphelp:
 def save(site, text="", pagename = None, filename = None, comment=None, minorEdit=True, botflag=True, dry=False):
 # helper fun to save text to wiki
     page=wikipedia.Page(site, pagename)
-    if (filename <> None) and (page.exists()): # need to save locally, do not overwrite
+    print filename
+    #if (filename <> None) and (page.exists()): # need to save locally, do not overwrite
+    if (filename <> None): # need to save locally, do not overwrite
         f = open(filename, 'w+')
         f.write(text.encode('utf-8'))
         f.close()
