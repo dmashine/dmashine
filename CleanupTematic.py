@@ -44,6 +44,7 @@ base={#u'Авиация':'Aвиация',
  u'Православие':'Православие',
  u'Программное обеспечение':'Программное обеспечение',
  u'Санкт-Петербург':'Санкт-Петербург',
+ u'Свободное программное обеспечение':'Свободное программное обеспечение',
 # u'Транспорт':'Транспорт',
  u'Экономика':'Экономика',
  u'Филология':'Филология',
@@ -96,9 +97,9 @@ class CleanupTematic(Thread):
       return
 
     # Определяем рост статьи с момента выставления шаблона
-    edits=len(p.getVersionHistory(False, False, True)) #number of edits made
-    size1=0; oldid=0 #инициализация переменных чтоб не падало
     try:
+        edits=len(p.getVersionHistory(False, False, True)) #number of edits made
+        size1=0; oldid=0 #инициализация переменных чтоб не падало
         for l in p.fullVersionHistory(False, False, True):
           try:
              text=l[3].decode("utf-8", "ignore") 

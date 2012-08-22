@@ -73,6 +73,8 @@ class GVRObject:
         self._data[u"Названия"] = ""
         self._data[u"Вытекает"] = ""
         self._data[u"Реки"] = ""
+        self._data[u"Площадь водоёма"] = ""
+        self._data[u"Водосборная площадь"] = ""
         self._data[u"card"] = card
         self._data[u"accessdate"] = datetime.date.today()
 
