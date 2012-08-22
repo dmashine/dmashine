@@ -49,7 +49,10 @@ template = u"""{{Озеро
 * Номер тома по ГИ — %(Номер тома по ГИ)s;
 * Выпуск по ГИ — %(Выпуск по ГИ)s.
 
-{{tl|Непроверенное озеро}}
+{{Непроверенное озеро}}
+{{Karelia-geo-stub}}
+{{hydro-stub}}
+
 == Примечания == 
 {{примечания}} 
 
@@ -67,7 +70,8 @@ def decdeg2dms(dd):
     return deg,mnt,sec
 if __name__=="__main__":
     #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
-    gvrlist = gvr.GVRList(bo="1", wot="11")
+    gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
+    gvrlist.update(bo="1", rb="67", wot="11")
     a=0
     #gvrlist=[gvr.GVRObject("150490")]
     site = wikipedia.getSite()
@@ -94,19 +98,19 @@ if __name__=="__main__":
                 pass
             d[u"state"] = ""
             d.update(osm.get_data())
-            print name
-            print d[u"Площадь водоёма"]
-            print d[u"Водосборная площадь"]
-            print d[u"state"]
+            
             d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
             d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
-            a+=1
+            
             if d[u"Площадь водоёма"] == "0" or d[u"Площадь водоёма"] == "999":
                 print "Найдена неверная площадь водоема"
                 d[u"Площадь водоёма"][1] == "Н/Д"
             if d[u"Водосборная площадь"] == "0" or d[u"Водосборная площадь"] == "999":
                 print "Найдена неверная Водосборная площадь"
                 d[u"Площадь водосбора"][1] == "Н/Д"
+            a+=1
+            print "[%s] %s, %s"%(a, name, d[u"state"])
+
             #for i in d:
             #    print "%s: %s"%(i, d[i])
             #print name

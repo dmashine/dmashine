@@ -142,6 +142,10 @@ class GVRList:
             if l.find(u'следующая страница результатов')>1: # results divided into pages.
                 self._data+=GVRList(bo, rb, subb, hep, wot, name, num, loc, start+200).get_data()
        #self.test()
+    def update(self, bo="", rb="", subb="", hep="", wot="", name="", num="", loc="", start=0):
+        """updates one gvrlist with other data. keeps sorted"""
+        self._data + GVRList(bo, rb, subb, hep, wot, name, num, loc).get_data()
+        self._data.sort()
     def test(self):
         for l in self:
             print ">"+l
