@@ -35,5 +35,5 @@ class CategoryIntersect:
         return data[data.find("[[")+2:data.find("]]")] # get article name
 
 class CategoryIntersectException(Exception):
-    """just esxeption"""
+    """just exception"""
     pass
