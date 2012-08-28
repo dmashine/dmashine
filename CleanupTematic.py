@@ -139,12 +139,12 @@ class CleanupTematic(Thread):
 # start point
 site = wikipedia.getSite()
 if len(sys.argv) >= 2: # got arguments in command line
-  for i in sys.argv[1:]:
-    #j = unicode(i, "mbcs") # windows
-    j = unicode(i, locale.getpreferredencoding())
-    th = CleanupTematic(j, base[j])
-    th.start()
+    for i in sys.argv[1:]:
+        #j = unicode(i, "mbcs") # windows
+        j = unicode(i, locale.getpreferredencoding())
+        th = CleanupTematic(j, base[j])
+        th.start()
 else:
-  for i in base:
-    th = CleanupTematic(i, base[i])
-    th.start()
+    for i in base:
+        th = CleanupTematic(i, base[i])
+        th.start()
