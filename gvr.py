@@ -110,7 +110,7 @@ if __name__ == "__main__":
     site = wikipedia.getSite()
     
     gvrobj = GVRObject("150939")
-    for d in gvrobj.get_data()
+    for d in gvrobj.get_data():
         print d
     #save(template % gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
     #gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
