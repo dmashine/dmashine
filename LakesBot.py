@@ -82,7 +82,7 @@ if __name__ == "__main__":
             name = d[u"Название"]
             osm = None
             try:
-                osm = OSMAPI.search(name)
+                osm = OSMAPI.Search(name)
             except OSMAPI.OSMAPIException: # first name isn`t found, lets try other
                 logger.debug(u"%s не найдено, перебор вариантов"%name)
                 for s in gvrobj.get_data()[u"Названия"].split(","):
