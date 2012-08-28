@@ -103,7 +103,7 @@ if __name__ == "__main__":
             try:
                 d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
                 d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
-            except TypeError:
+            except (TypeError, KeyError):
                 d["lat_deg"], d["lat_min"], d["lat_sec"] = "", "", ""
                 d["lon_deg"], d["lon_min"], d["lon_sec"] = "", "", ""
             

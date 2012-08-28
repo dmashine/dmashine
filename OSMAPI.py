@@ -21,6 +21,7 @@ class search:
         xmlTag = dom.getElementsByTagName('place')
         
         self._data={}
+        self._data[u"city"] = ""
         if len(xmlTag) == 1:
             # collect all attributes from attribites and child nodes to data
             attr=xmlTag[0].attributes

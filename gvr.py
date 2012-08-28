@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8-*-
 import re, wikipedia, datetime
-from httphelp import *
+from httphelp import httphelp
 
 template = u"""{{Озеро
  |Название                 = %(Название)s
@@ -69,7 +69,7 @@ class GVRObject:
         conn.parameters = {'card': card}    
     
         self._card = card
-        self._data={}
+        self._data = {}
         self._data[u"Названия"] = ""
         self._data[u"Вытекает"] = ""
         self._data[u"Реки"] = ""
@@ -80,13 +80,13 @@ class GVRObject:
 
         for l in conn.lines():
             if l.find('class="cardv"')>0:
-                key=""
+                key = ""
                 for s in re.split('<.+?>', l):
-                    if s<>"":
-                        if key<>"":
+                    if s != "":
+                        if key != "":
                             # workarounds for different keys
                             if key == u"Площадь водоёма" or key == u"Водосборная площадь":
-                                if s.find("0")<>0 and s.find("999")<>0:
+                                if s.find("0")!=0 and s.find("999")!=0:
                                     # data errors
                                     self._data[key] = unicode(s[:-9])                                
                                 else:
@@ -100,23 +100,24 @@ class GVRObject:
                                 else:
                                     self._data[u"Вытекает"] = unicode(s[5:])
                             elif key == u"Бассейновый округ" or key == u"Речной бассейн" or key == u"Речной подбассейн":
-                                if s.find("(") >0:
-                                    self._data[key]=unicode(s[:s.rfind("(")])
+                                if s.find("(") > 0:
+                                    self._data[key] = unicode(s[:s.rfind("(")])
                             else: # get it 
-                                self._data[key]=unicode(s)
+                                self._data[key] = unicode(s)
                         else: #first string in response is key, second is parameter
-                            key=unicode(s)
+                            key = unicode(s)
             if l.find(u'<td valign="top"><a href="')>=0:
-                    # get rivers from page
-                    s=u"\nВ озеро впадают: "
-                    for l in re.split( "<.+?>", l):
-                        if l=="":
-                            continue
-                        a=l.find(" ")+1 # wikification
-                        b=l.find("(")-1
-                        if b==-2: b=len(l)
-                        s+=l[:a]+u"[["+l[a:b]+u"]]"+l[b:]+", "
-                    s=s[:-2]+"."
+                # get rivers from page
+                s = u"\nВ озеро впадают: "
+                for l in re.split( "<.+?>", l):
+                    if l == "":
+                        continue
+                    a = l.find(" ")+1 # wikification
+                    b = l.find("(")-1
+                    if b == -2:
+                        b = len(l)
+                    s += l[:a]+u"[["+l[a:b]+u"]]"+l[b:]+", "
+                    s = s[:-2]+"."
                     self._data[u"Реки"] = s
     def get_data(self):
         return self._data
@@ -134,17 +135,17 @@ class GVRList:
         conn.scriptname = "/gvr/index.php"
         conn.parameters = {'bo': bo, "rb":rb, "subb":subb, "hep":hep, "wot": wot, "name":name, "num":num, "loc":loc, "start":start}
 
-        self._data=[]
+        self._data = []
         for l in conn.lines():
-            b=l.find('/gvr/index.php?card=')
-            if b>0:
-                self._data+=[l[b+20:l.find('&',b)]]
+            b = l.find('/gvr/index.php?card=')
+            if b > 0:
+                self._data += [l[b+20:l.find('&', b)]]
             if l.find(u'следующая страница результатов')>1: # results divided into pages.
-                self._data+=GVRList(bo, rb, subb, hep, wot, name, num, loc, start+200).get_data()
+                self._data += GVRList(bo, rb, subb, hep, wot, name, num, loc, start+200).get_data()
        #self.test()
     def update(self, bo="", rb="", subb="", hep="", wot="", name="", num="", loc="", start=0):
         """updates one gvrlist with other data. keeps sorted"""
-        self._data + GVRList(bo, rb, subb, hep, wot, name, num, loc).get_data()
+        self._data += GVRList(bo, rb, subb, hep, wot, name, num, loc).get_data()
         self._data.sort()
     def test(self):
         for l in self:
@@ -155,15 +156,15 @@ class GVRList:
         return self
     def next(self): #__next__() in >3.0
         if len(self._data) == 0:
-          raise StopIteration	
+            raise StopIteration	
         return GVRObject(self._data.pop(0))
 
-if __name__=="__main__":
+if __name__ == "__main__":
     site = wikipedia.getSite()
     
     gvrobj = GVRObject("150939")
-    #print template%gvrobj.get_data()
-    #save(template%gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
+    print template % gvrobj.get_data()
+    #save(template % gvrobj.get_data(), title=gvrobj.get_data()[u"Название"])
     #gvrlist = GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
     #r="__NOTOC__"
     #for o in gvrlist:
