@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 import gvr, OSMAPI
-import wikipedia
-from httphelp import *
+import wikipedia, logging, httphelp
 
 template = u"""{{Озеро
  |Название                 = %(Название)s
@@ -65,51 +64,59 @@ template = u"""{{Озеро
 """
 def decdeg2dms(dd):
     # http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python
-    mnt,sec = divmod(dd*3600,60)
-    deg,mnt = divmod(mnt,60)
-    return deg,mnt,sec
-if __name__=="__main__":
+    mnt, sec = divmod(dd*3600, 60)
+    deg, mnt = divmod(mnt, 60)
+    return deg, mnt, sec
+if __name__ == "__main__":
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
     #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
     gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
     gvrlist.update(bo="1", rb="67", wot="11")
-    a=0
+    a = 0
     #gvrlist=[gvr.GVRObject("150490")]
     site = wikipedia.getSite()
     for gvrobj in gvrlist:
         try:
-            d=gvrobj.get_data()
-            name=d[u"Название"]
-            osm=None
+            d = gvrobj.get_data()
+            name = d[u"Название"]
+            osm = None
             try:
-                osm=OSMAPI.search(name)
+                osm = OSMAPI.search(name)
             except OSMAPI.OSMAPIException: # first name isn`t found, lets try other
-                #print u"%s не найдено, перебор вариантов"%name
+                logger.debug(u"%s не найдено, перебор вариантов"%name)
                 for s in gvrobj.get_data()[u"Названия"].split(","):
                     try:
-                        osm=OSMAPI.search(s.strip())
-                        #print u"Найден вариант %s"%s
+                        osm = OSMAPI.search(s.strip())
+                        logger.debug(u"Найден вариант %s"%s)
                         break
                     except OSMAPI.OSMAPIException:
                         pass
-                if osm==None:
+                if osm == None:
                     raise OSMAPI.OSMAPIException
             except IOError:
-                print "%s ioerror, pass"%name
-                pass
+                logger.warning("%s ioerror, pass"%name)
+
             d[u"state"] = ""
             d.update(osm.get_data())
             
-            d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
-            d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
+            try:
+                d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
+                d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
+            except TypeError:
+                d["lat_deg"], d["lat_min"], d["lat_sec"] = "", "", ""
+                d["lon_deg"], d["lon_min"], d["lon_sec"] = "", "", ""
             
             if d[u"Площадь водоёма"] == "0" or d[u"Площадь водоёма"] == "999":
-                print "Найдена неверная площадь водоема"
-                d[u"Площадь водоёма"][1] == "Н/Д"
+                logger.warning(u"Найдена неверная площадь водоема")
+                d[u"Площадь водоёма"][1] = "Н/Д"
             if d[u"Водосборная площадь"] == "0" or d[u"Водосборная площадь"] == "999":
-                print "Найдена неверная Водосборная площадь"
-                d[u"Площадь водосбора"][1] == "Н/Д"
-            a+=1
-            print "[%s] %s, %s"%(a, name, d[u"state"])
+                logger.warning(u"Найдена неверная Водосборная площадь")
+                d[u"Площадь водосбора"][1] = "Н/Д"
+            if d[u"state"].find(u"Карелия") > 0:
+                a += 1
+                logger.info("[%s] %s, %s"%(a, name, d[u"state"]))
+                httphelp.save(site, text=(template%d), pagename=d[u"Название"], filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"], dry=True, comment="Заливка озер")
 
             #for i in d:
             #    print "%s: %s"%(i, d[i])
