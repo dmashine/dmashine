@@ -20,10 +20,10 @@ class httphelp:
     def __del__(self):
         self.conn.close()
 
-def save(site, text="", pagename = None, filename = None, comment=None, minorEdit=True, botflag=True, dry=False):
+def save(site, text="", pagename = None, filename = None, comment=None, minoredit=True, botflag=True, dry=False):
     """ Helper fun to save text to wiki"""
     page = wikipedia.Page(site, pagename)
-    print filename
+    #print filename
     #if (filename <> None) and (page.exists()): # need to save locally, do not overwrite
     if (filename != None): # need to save locally, do not overwrite
         f = open(filename, 'w+')
@@ -32,7 +32,7 @@ def save(site, text="", pagename = None, filename = None, comment=None, minorEdi
         return
     if not dry:
         try:
-            page.put(text, comment, minorEdit=minorEdit, botflag=botflag)
+            page.put(text, comment, minorEdit=minoredit, botflag=botflag)
         except wikipedia.LockedPage:
             wikipedia.output(u"Страница %s заблокирована; пропускаю." % page.title(asLink=True))
         except wikipedia.EditConflict:

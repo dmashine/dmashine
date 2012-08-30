@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+"""Bot to load lake info from Openstreetmap and GVR"""
+
 import gvr, OSMAPI
 import wikipedia, logging, httphelp
 
-template = u"""{{Озеро
+Template = u"""{{Озеро
  |Название                 = %(Название)s
   |Национальное название   = %(Названия)s
  |Изображение              = 
@@ -63,13 +65,14 @@ template = u"""{{Озеро
 <br clear="all">
 """
 def decdeg2dms(dd):
-    # http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python
+    """" http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python"""
     mnt, sec = divmod(dd*3600, 60)
     deg, mnt = divmod(mnt, 60)
     return deg, mnt, sec
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
+    #logger = logging.getLogger(__name__)
+    #logging.setLevel(logging.DEBUG)
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
     gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
     gvrlist.update(bo="1", rb="67", wot="11")
@@ -83,19 +86,20 @@ if __name__ == "__main__":
             osm = None
             try:
                 osm = OSMAPI.Search(name)
-            except OSMAPI.OSMAPIException: # first name isn`t found, lets try other
-                logger.debug(u"%s не найдено, перебор вариантов"%name)
+            except OSMAPI.OSMAPIException:
+                # first name isn`t found, lets try other
+                logging.debug(u"%s не найдено, перебор вариантов", name)
                 for s in gvrobj.get_data()[u"Названия"].split(","):
                     try:
-                        osm = OSMAPI.search(s.strip())
-                        logger.debug(u"Найден вариант %s"%s)
+                        osm = OSMAPI.Search(s.strip())
+                        logging.debug(u"Найден вариант %s", s)
                         break
                     except OSMAPI.OSMAPIException:
                         pass
                 if osm == None:
                     raise OSMAPI.OSMAPIException
             except IOError:
-                logger.warning("%s ioerror, pass"%name)
+                logging.warning("%s ioerror, pass", name)
 
             d[u"state"] = ""
             d.update(osm.get_data())
@@ -107,20 +111,23 @@ if __name__ == "__main__":
                 d["lat_deg"], d["lat_min"], d["lat_sec"] = "", "", ""
                 d["lon_deg"], d["lon_min"], d["lon_sec"] = "", "", ""
             
-            if d[u"Площадь водоёма"] == "0" or d[u"Площадь водоёма"] == "999":
-                logger.warning(u"Найдена неверная площадь водоема")
+            if d[u"Площадь водоёма"] == "0" \
+                or d[u"Площадь водоёма"] == "999":
+                logging.warning(u"Найдена неверная площадь водоема")
                 d[u"Площадь водоёма"][1] = "Н/Д"
-            if d[u"Водосборная площадь"] == "0" or d[u"Водосборная площадь"] == "999":
-                logger.warning(u"Найдена неверная Водосборная площадь")
+            if d[u"Водосборная площадь"] == "0" \
+                or d[u"Водосборная площадь"] == "999":
+                logging.warning(u"Найдена неверная Водосборная площадь")
                 d[u"Площадь водосбора"][1] = "Н/Д"
             if d[u"state"].find(u"Карелия") > 0:
                 a += 1
-                logger.info("[%s] %s, %s"%(a, name, d[u"state"]))
-                httphelp.save(site, text=(template%d), pagename=d[u"Название"], filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"], dry=True, comment="Заливка озер")
+                logging.info("[%s] %s, %s", a, d[u"Название"], d[u"state"])
+                httphelp.save(site, text=(Template%d), \
+                 pagename=d[u"Название"], \
+                 filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"],\
+                 dry=True, comment="Заливка озер")
 
             #for i in d:
             #    print "%s: %s"%(i, d[i])
-            #print name
-            #save(site, text=(template%d), pagename=d[u"Название"],filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"], dry=True, comment="Заливка озер")
         except OSMAPI.OSMAPIException:
             pass

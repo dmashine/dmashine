@@ -12,7 +12,7 @@ import httphelp
 from threading import Thread
 from CategoryIntersect import CategoryIntersect
 
-months = {'01':u'января',
+Months = {'01':u'января',
         '02':u'февраля',
         '03':u'марта',
         '04':u'апреля',
@@ -58,8 +58,8 @@ class CleanupTematic(Thread):
         self.pagename = pagename
         self.catname = catname
         self.text = ''
-    def save(self, minorEdit=True, botflag=True, dry=False):
-        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minorEdit=minorEdit, botflag=botflag)
+    def save(self, minoredit=True, botflag=True, dry=False):
+        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minoredit=minoredit, botflag=botflag)
   
     def addline(self, article):
         """ Gets article name. Returns string- one line of table. """
@@ -80,7 +80,7 @@ class CleanupTematic(Thread):
             # what a mess, has a category, and no template
             return
         try:  
-            month = months[param[5:7]] # Словесное название месяца из даты
+            month = Months[param[5:7]] # Словесное название месяца из даты
             year = param[0:4]
             date = param[8:10]
             if date[0] == '0': # remove non-significant 0 from date
