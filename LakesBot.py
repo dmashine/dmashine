@@ -79,6 +79,9 @@ if __name__ == "__main__":
     a = 0
     #gvrlist=[gvr.GVRObject("150490")]
     site = wikipedia.getSite()
+    # пройти по всем озерам
+    # Удалить дублирующиеся по OSM ID
+    
     for gvrobj in gvrlist:
         try:
             d = gvrobj.get_data()
@@ -121,7 +124,7 @@ if __name__ == "__main__":
                 d[u"Площадь водосбора"][1] = "Н/Д"
             if d[u"state"].find(u"Карелия") > 0:
                 a += 1
-                logging.info("[%s] %s, %s", a, d[u"Название"], d[u"state"])
+                logging.info(u"[%s] Название %s, Регион %s OSM %s GVR %s", a, d[u"Название"], d[u"state"], d["place_id"], d[u"Код водного объекта"])
                 httphelp.save(site, text=(Template%d), \
                  pagename=d[u"Название"], \
                  filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"],\
