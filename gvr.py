@@ -4,6 +4,7 @@ import re, wikipedia, datetime
 from httphelp import httphelp
 
 class GVRException(Exception):
+    """just an exception"""
     pass
 
 class GVRObject:
@@ -17,12 +18,6 @@ class GVRObject:
     
         self._card = card
         self._data = {}
-        self._data[u"Названия"] = ""
-        self._data[u"Вытекает"] = ""
-        self._data[u"Реки"] = ""
-        self._data[u"Площадь водоёма"] = ""
-        self._data[u"Водосборная площадь"] = ""
-        self._data[u"card"] = card
         self._data[u"accessdate"] = datetime.date.today()
 
         for l in conn.lines():
@@ -68,6 +63,25 @@ class GVRObject:
                     self._data[u"Реки"] = s
     def get_data(self):
         return self._data
+    def update(self, upd):
+        """updates one gvr data with other data. """
+        for u in upd:
+            self._data[u] = upd[u]
+    
+    #def __getattr__(self, attr):
+    #    try:
+    #        return  self._data[attr]
+    #    except KeyError:
+    #        raise AttributeError
+    def __getitem__(self, attr):
+        try:
+            return  self._data[attr]
+        except KeyError:
+            return ""
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+
     def __repr__(self):
         return u"GVRObject "+self._card+u"\r"
 
@@ -90,7 +104,7 @@ class GVRList:
             if l.find(u'следующая страница результатов')>1: # results divided into pages.
                 self._data += GVRList(bo, rb, subb, hep, wot, name, num, loc, start+200).get_data()
        #self.test()
-    def update(self, bo="", rb="", subb="", hep="", wot="", name="", num="", loc="", start=0):
+    def update(self, bo="", rb="", subb="", hep="", wot="", name="", num="", loc=""):
         """updates one gvrlist with other data. keeps sorted"""
         self._data += GVRList(bo, rb, subb, hep, wot, name, num, loc).get_data()
         self._data.sort()

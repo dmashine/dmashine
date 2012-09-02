@@ -69,22 +69,17 @@ def decdeg2dms(dd):
     mnt, sec = divmod(dd*3600, 60)
     deg, mnt = divmod(mnt, 60)
     return deg, mnt, sec
-if __name__ == "__main__":
-    #logger = logging.getLogger(__name__)
-    #logging.setLevel(logging.DEBUG)
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+
+def LakesList():    
+    """returns  list of lakes from Openstreetmap and GVR"""
     gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
-    gvrlist.update(bo="1", rb="67", wot="11")
-    a = 0
+    #gvrlist.update(bo="1", rb="67", wot="11")
     #gvrlist=[gvr.GVRObject("150490")]
-    site = wikipedia.getSite()
-    # пройти по всем озерам
-    # Удалить дублирующиеся по OSM ID
     
-    for gvrobj in gvrlist:
+    r = []    
+    
+    for d in gvrlist:
         try:
-            d = gvrobj.get_data()
             name = d[u"Название"]
             osm = None
             try:
@@ -92,7 +87,7 @@ if __name__ == "__main__":
             except OSMAPI.OSMAPIException:
                 # first name isn`t found, lets try other
                 logging.debug(u"%s не найдено, перебор вариантов", name)
-                for s in gvrobj.get_data()[u"Названия"].split(","):
+                for s in d[u"Названия"].split(","):
                     try:
                         osm = OSMAPI.Search(s.strip())
                         logging.debug(u"Найден вариант %s", s)
@@ -104,13 +99,12 @@ if __name__ == "__main__":
             except IOError:
                 logging.warning("%s ioerror, pass", name)
 
-            d[u"state"] = ""
             d.update(osm.get_data())
             
             try:
                 d["lat_deg"], d["lat_min"], d["lat_sec"] = decdeg2dms(float(d["lat"]))
                 d["lon_deg"], d["lon_min"], d["lon_sec"] = decdeg2dms(float(d["lon"]))
-            except (TypeError, KeyError):
+            except (ValueError):
                 d["lat_deg"], d["lat_min"], d["lat_sec"] = "", "", ""
                 d["lon_deg"], d["lon_min"], d["lon_sec"] = "", "", ""
             
@@ -122,15 +116,22 @@ if __name__ == "__main__":
                 or d[u"Водосборная площадь"] == "999":
                 logging.warning(u"Найдена неверная Водосборная площадь")
                 d[u"Площадь водосбора"][1] = "Н/Д"
-            if d[u"state"].find(u"Карелия") > 0:
-                a += 1
-                logging.info(u"[%s] Название %s, Регион %s OSM %s GVR %s", a, d[u"Название"], d[u"state"], d["place_id"], d[u"Код водного объекта"])
-                httphelp.save(site, text=(Template%d), \
-                 pagename=d[u"Название"], \
-                 filename=u"/home/drakosh/озера/%s.txt"%d[u"Название"],\
-                 dry=True, comment="Заливка озер")
-
-            #for i in d:
-            #    print "%s: %s"%(i, d[i])
+            r += [d]    
         except OSMAPI.OSMAPIException:
             pass
+    return r    
+
+    
+if __name__ == "__main__":
+    site = wikipedia.getSite()
+    a = 0
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
+    for l in LakesList():
+        if l[u"state"].find(u"Карел") > 0:
+            a += 1
+            logging.info(u"[%s] Название %s, Регион %s OSM %s GVR %s", a, l[u"Название"], l["state"], l["place_id"], l[u"Код водного объекта"])
+            httphelp.save(site, text=(Template%l), \
+                 pagename=l[u"Название"], \
+                 filename=u"/home/drakosh/озера/%s.txt"%l[u"Название"],\
+                 dry=True, comment="Заливка озер")
