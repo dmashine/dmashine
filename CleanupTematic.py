@@ -59,7 +59,7 @@ class CleanupTematic(Thread):
         self.catname = catname
         self.text = ''
     def save(self, minoredit=True, botflag=True, dry=False):
-        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minoredit=minoredit, botflag=botflag)
+        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """ Gets article name. Returns string- one line of table. """
@@ -70,13 +70,14 @@ class CleanupTematic(Thread):
             if tl[0] == u'К улучшению':
                 try:
                     param = tl[1][0]
-                except:
+                except Exception, e:
                     wikipedia.output(u"Статья %s без даты выставления! " % (article))
                     self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article) # afi date not found
                     return
-            break
+                break
         if param == '':
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
+            wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
             return
         try:  
@@ -92,7 +93,10 @@ class CleanupTematic(Thread):
                 style = 'class="bright"|'
             elif past > 90:
                 style = 'class="highlight"|'
-        except: # errors in date conversion
+        #except: # errors in date conversion
+        except Exception, e:
+            wikipedia.output(u"Ошибка конвертации даты %s: %s"%(article, e))
+            traceback.print_tb(sys.exc_info()[2])
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
             return
 
@@ -104,7 +108,7 @@ class CleanupTematic(Thread):
             for l in p.fullVersionHistory(False, False, True):
                 try:
                     text = l[3].decode("utf-8", "ignore") 
-                except:
+                except Exception, e:
                     text = l[3]
                 edits = edits-1 #эта правка без шаблона
                 if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
@@ -112,7 +116,7 @@ class CleanupTematic(Thread):
                     size1 = len(text) # её объём
                 break
             diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
-        except:
+        except Exception, e:
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
             return            
         wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s") % (title, self.pagename, param, diff, edits))
