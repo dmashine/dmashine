@@ -76,7 +76,7 @@ class CleanupTematic(Thread):
                     return
                 break
         if param == '':
-            self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
+            self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не обнаружен шаблон КУЛ\n|-\n' % (article)
             wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
             return
