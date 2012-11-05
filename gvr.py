@@ -88,7 +88,11 @@ class GVRObject:
 class GVRList:
     """Represents list of GVR objects.
         init parameters as in official site, may be omitted"""
+        
     def __init__(self, bo="", rb="", subb="", hep="", wot="", name="", num="", loc="", start=0):
+        if bo == "":
+            self._data = []
+            return
         # http://textual.ru/gvr/index.php?bo=1&rb=68&subb=0&hep=0&wot=11&name=&num=&loc=&s=%CF%EE%E8%F1%EA
         conn = httphelp()
         conn.server     = "textual.ru"
@@ -97,6 +101,8 @@ class GVRList:
         conn.parameters = {'bo': bo, "rb":rb, "subb":subb, "hep":hep, "wot": wot, "name":name, "num":num, "loc":loc, "start":start}
 
         self._data = []
+        self._pointer = -1
+        
         for l in conn.lines():
             b = l.find('/gvr/index.php?card=')
             if b > 0:
@@ -116,9 +122,10 @@ class GVRList:
     def __iter__(self):
         return self
     def next(self): #__next__() in >3.0
-        if len(self._data) == 0:
+        if self._pointer > len(self._data):
             raise StopIteration	
-        return GVRObject(self._data.pop(0))
+        self._pointer = -1
+        return GVRObject(self._data[self._pointer])
 
 if __name__ == "__main__":
     site = wikipedia.getSite()

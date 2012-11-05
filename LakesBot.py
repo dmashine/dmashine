@@ -69,14 +69,23 @@ def decdeg2dms(dd):
     mnt, sec = divmod(dd*3600, 60)
     deg, mnt = divmod(mnt, 60)
     return deg, mnt, sec
+    
+def NumberOfSame(glist, OSMid):
+    """refactor this"""
+    r = 0
+    for g in glist:
+        if g["place_id"] == OSMid:
+            r += 1
+        return r
 
 def LakesList():    
     """returns  list of lakes from Openstreetmap and GVR"""
-    gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
+    #gvrlist = gvr.GVRList(bo="1", rb="67", wot="11")
+    gvrlist = gvr.GVRList(bo="1", rb="67", hep="591", subb="86", wot="11")
     #gvrlist.update(bo="1", rb="67", wot="11")
     #gvrlist=[gvr.GVRObject("150490")]
     
-    r = []    
+    r = []  
     
     for d in gvrlist:
         try:
@@ -119,7 +128,15 @@ def LakesList():
             r += [d]    
         except OSMAPI.OSMAPIException:
             pass
-    return r    
+    # filter same OSM id. refactor this!
+    r2 = []
+    for dd in r: #NumberOfSame(glist, OSMid):
+        #if NumberOfSame(r, dd["place_id"]) == 1:
+        #    print ">%s, %s, %s<"%(dd, dd[u"state"], dd["place_id"])
+        r2 += [dd]
+        #else:
+        #    logging.info(u"Дубль %s", dd)
+    return r2
 
     
 if __name__ == "__main__":
@@ -127,7 +144,9 @@ if __name__ == "__main__":
     a = 0
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     #gvrlist = gvr.GVRList(bo="1", rb="67", hep="591",subb="86", wot="11")
-    for l in LakesList():
+    ll = LakesList()
+    for l in ll:
+        print ">%s, %s, %s<"%(l, l[u"state"], l["place_id"])
         if l[u"state"].find(u"Карел") > 0:
             a += 1
             logging.info(u"[%s] Название %s, Регион %s OSM %s GVR %s", a, l[u"Название"], l["state"], l["place_id"], l[u"Код водного объекта"])

@@ -23,8 +23,12 @@ class Search:
         query = urllib.urlopen('http://nominatim.openstreetmap.org/search?%s'%params)
         data = query.read()
         query.close()
-        dom = parseString(data)
-
+        try:
+            dom = parseString(data)
+        except:
+            print(u"Не распарсили запрос %s" % search)
+            print data
+            raise OSMAPIException
         xmltag = dom.getElementsByTagName('place')
         
         self._data = {}
@@ -46,6 +50,8 @@ class Search:
         else:
             raise OSMAPIException
 if __name__ == "__main__":
-    S = Search(u"Шотозеро")
+    #S = Search(u"Шотозеро")
+    #S = Search(u"Онежское")    
+    S = Search(u"Егля-ярви")
     for d in S.get_data():
         print "%s: %s" % (d, S.get_data()[d])
