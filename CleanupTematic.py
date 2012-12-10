@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8-*-
-# Скрипт разделяет статьи, предложенные к улучшению в ru.wikipedia
-#   по тематическим страницам. Извиняюсь за мешанину с unicode(хотя старался исправить) и стиль.
-# Автор: http://ru.wikipedia.org/wiki/Участник:Drakosh
-# Лицензирование: GNU GPL v3 / Beerware.
-# Для длинных списков <div style="height:200px; overflow:auto; padding:3px"></div>
+""" Скрипт разделяет статьи, предложенные к улучшению в ru.wikipedia
+по тематическим страницам. Извиняюсь за мешанину с unicode(хотя старался исправить) и стиль.
+Автор: http://ru.wikipedia.org/wiki/Участник:Drakosh
+Лицензирование: GNU GPL v3 / Beerware.
+Для длинных списков <div style="height:200px; overflow:auto; padding:3px"></div>"""
 
 import traceback, datetime, sys, locale
 import wikipedia
@@ -53,16 +53,18 @@ base = {#u'Авиация':'Aвиация',
 		
 
 class CleanupTematic(Thread):
+    """One thread of bot that cleans one theme"""
     def __init__(self, pagename, catname):
         Thread.__init__(self)
         self.pagename = pagename
         self.catname = catname
         self.text = ''
     def save(self, minoredit=True, botflag=True, dry=False):
+        """Saves data to wikipedia page"""
         httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
-        """ Gets article name. Returns string- one line of table. """
+        """Gets article name. Adds to self.text one line of table. """
         p = wikipedia.Page(site, article)
         title = p.titleWithoutNamespace()
         param = ''

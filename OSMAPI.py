@@ -33,6 +33,7 @@ class Search:
         
         self._data = {}
         self._data[u"city"] = ""
+
         if len(xmltag) == 1:
             # collect all attributes from attribites and child nodes to data
             attr = xmltag[0].attributes
@@ -50,8 +51,8 @@ class Search:
         else:
             raise OSMAPIException
 if __name__ == "__main__":
-    #S = Search(u"Шотозеро")
-    #S = Search(u"Онежское")    
-    S = Search(u"Егля-ярви")
+    S = Search(u"Шотозеро")
+    #S = Search(u"Онежское ")    
+    #S = Search(u"Егля-ярви")
     for d in S.get_data():
         print "%s: %s" % (d, S.get_data()[d])
