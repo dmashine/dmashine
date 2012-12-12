@@ -8,12 +8,13 @@ class httphelp:
     """ Helper class to read lines with httplib"""
     def __init__(self):
         pass
-    def lines(self):
+    def lines(self, method="POST"):
         self.conn = httplib.HTTPConnection(self.server)
         p = urllib.urlencode(self.parameters)
-        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        headers = {"Content-type": "application/x-www-form-urlencoded", \
+                   "Accept": "text/plain"}
 
-        self.conn.request("POST", self.scriptname, p, headers)
+        self.conn.request(method, self.scriptname, p, headers)
         response = self.conn.getresponse()
         #print response.status, response.reason
         return [l.decode(self.codepage, "ignore") for l in response.read().splitlines()]
