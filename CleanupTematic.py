@@ -136,9 +136,10 @@ class CleanupTematic(Thread):
             for name in ci:
                 self.addline(name) # дописали текст
         except Exception, e:
-            wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            #wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
             traceback.print_tb(sys.exc_info()[2])
-            self.run()
+            #self.run()
             return
         self.text += "|}"
         self.save()

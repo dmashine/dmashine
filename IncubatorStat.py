@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8-*-
+# -*- coding: utf-8 -*-
 """ Скрипт для обновления [[Википедия:Список Википедий в инкубаторе]]
 Автор: http://ru.wikipedia.org/wiki/Участник:Drakosh
 Лицензирование: GNU GPL v3 / Beerware."""
 
 import wikipedia, catlib, re
-from httphelp import httphelp
+from httphelp import httphelp, save
 
 class IncubatorException(Exception):
     """just an exception"""
@@ -15,16 +15,17 @@ class WikiInfo:
     """Info about a wiki in incubator"""
     def __init__(self, cat):
         self.cat = cat
-        self.articles = 0# len(self.cat.articlesList(recurse = 3))
-        self.pages = 0
-        self.redir = 0
-        self.editors = 0
-        self.edits = 0
-        self.littleedits = 0       
+        self.articles = u"-"
+        self.pages = u"-"
+        self.redir = u"-"
+        self.editors = u"-"
+        self.edits = u"-"
+        self.littleedits = u"-"
         
         if self.cat.titleWithoutNamespace()[:2] == u"Wp":
             self.lang = self.cat.titleWithoutNamespace()[3:].encode("utf-8")
             self.localname = self.lang
+            self.rusname = u"---"
         else:
             raise IncubatorException
         for tl in self.cat.templatesWithParams():
@@ -32,8 +33,7 @@ class WikiInfo:
                 #self.localname = tl
                 for param in tl[1]:
                     if param.find(u"localname") > 0:
-                        self.localname =  param[param.find(u"=")+1:].strip().encode("utf-8")
-                        # i fucking LOVE unicode
+                        self.localname =  param[param.find(u"=")+1:].strip()
                         break
         self.conn = httphelp()
         self.conn.server     = "toolserver.org"
@@ -42,6 +42,7 @@ class WikiInfo:
         self.conn.codepage = "utf-8"
         self.lines = self.conn.lines("GET")
         for l in self.lines:
+            # i fucking LOVE unicode
             m = re.search(u'<li>(\d*) articles', l)
             if m != None:
                 self.pages = m.group(1).encode("utf-8")
@@ -53,19 +54,32 @@ class WikiInfo:
                 self.edits= m.group(1).encode("utf-8")
             m = re.search(u'including (\d*) minor', l)
             if m != None:
-                self.littleedits = m.group(1).encode("utf-8")
+                self.littleedits= m.group(1).encode("utf-8")
         
     def __repr__(self):
-        return "Lang:%s\tLocalname:%s\tA:%s\tP:%s\tR:%s\tE:%s" % (self.lang, self.localname, self.articles, self.pages, self.redir, self.editors)
+        return u"|%s||%s||%s||%s||%s||%s||%s||%s||%s||%s" % (0, 0, 0, 0, self.articles, self.pages, self.redir, self.editors, self.edits, self.littleedits)
         #return self.lang + self.localname
 
-if __name__ == "__main__":
-    f = open('/home/drakosh/IncubatorStat.txt', 'w+')    
+if __name__ == "__main__": 
     site = wikipedia.getSite('incubator', 'incubator')
+    text = u"""== Разделы Википедии в инкубаторе ==
+{| border="1" cellpadding="2" cellspacing="0" style="background: #ffffff; border: 1px solid #777777; border-collapse: collapse; white-space: nowrap; text-align: right" class="sortable plainlinksneverexpand"
+! style="background:#dde2e2; text-align: center" |{{comment|№|Порядковый номер раздела (по количеству статей)}}
+! style="background:#dde2e0; text-align: center" |Код
+! style="background:#dde2e2; text-align: center" |Язык
+! style="background:#dde2e2; text-align: center" |Самоназвание
+! style="background:#dde2e2; text-align: center" |Статей
+! style="background:#dde2e2; text-align: center" |{{comment|Стр.|Число страниц}}
+! style="background:#dde2e2; text-align: center" |{{comment|Редир.|Число перенаправлений}}
+! style="background:#dde2e2; text-align: center" |{{comment|Участн.|Число участников}}
+! style="background:#dde2e2; text-align: center" |{{comment|Правок|Число правок, в том числе малых}}
+! style="background:#dde2e2; text-align: center" |{{comment|Малых|Число малых правок}}\r\n""".encode("utf-8")
     for c in catlib.Category(site, u"Category:Incubator:All_test_wikis").subcategories():
         try:
             i = WikiInfo(c)
-            print i
+            text += (u"|-\r\n%s\r\n" % i).encode("utf-8")
         except IncubatorException:
             pass
-    f.close()
+    text += u"|}".encode("utf-8")
+    print text
+    save(wikipedia.getSite(), text=text, pagename=u"Википедия:Список Википедий в инкубаторе/Тест", comment=u"Список Википедий в инкубаторе")
