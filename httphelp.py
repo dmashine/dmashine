@@ -4,6 +4,11 @@
 # Author Drakosh <cpsoft@gmail.com>
 # License GNU GPL v3 / Beerware
 import httplib, urllib, wikipedia
+
+class HttpHelpException(Exception):
+    """just exception"""
+    pass
+
 class httphelp:
     """ Helper class to read lines with httplib"""
     def __init__(self):
@@ -17,6 +22,10 @@ class httphelp:
         self.conn.request(method, self.scriptname, p, headers)
         response = self.conn.getresponse()
         #print response.status, response.reason
+        if response.status != "200":
+            print response.status, response.reason
+            raise HttpHelpException
+
         return [l.decode(self.codepage, "ignore") for l in response.read().splitlines()]
     def __del__(self):
         self.conn.close()
