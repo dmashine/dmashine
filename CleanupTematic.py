@@ -48,6 +48,7 @@ base = {#u'Авиация':'Aвиация',
 # u'Транспорт':'Транспорт',
  u'Экономика':'Экономика',
  u'Филология':'Филология',
+ u'Феминизм':'Феминизм',
  u'Футбол':'Футбол',
  u'Япония':'Япония'}
 		
@@ -116,7 +117,7 @@ class CleanupTematic(Thread):
                 if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
                     oldid = l[0] #первая версия, где стоит шаблон
                     size1 = len(text) # её объём
-                break
+                    break
             diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
         except Exception, e:
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
@@ -139,7 +140,7 @@ class CleanupTematic(Thread):
             #wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
             wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
             traceback.print_tb(sys.exc_info()[2])
-            #self.run()
+            self.run()
             return
         self.text += "|}"
         self.save()

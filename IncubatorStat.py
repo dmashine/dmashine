@@ -48,13 +48,13 @@ class WikiInfo:
                 self.pages = m.group(1).encode("utf-8")
             m = re.search(u'<li>(\d*) editors', l)
             if m != None:
-                self.editors= m.group(1).encode("utf-8")
+                self.editors = m.group(1).encode("utf-8")
             m = re.search(u'<li>(\d*) revisions', l)
             if m != None:
-                self.edits= m.group(1).encode("utf-8")
+                self.edits = m.group(1).encode("utf-8")
             m = re.search(u'including (\d*) minor', l)
             if m != None:
-                self.littleedits= m.group(1).encode("utf-8")
+                self.littleedits = m.group(1).encode("utf-8")
         
     def __repr__(self):
         return u"|%s||%s||%s||%s||%s||%s||%s||%s||%s||%s" % (0, 0, 0, 0, self.articles, self.pages, self.redir, self.editors, self.edits, self.littleedits)

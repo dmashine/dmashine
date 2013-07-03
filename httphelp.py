@@ -22,7 +22,7 @@ class httphelp:
         self.conn.request(method, self.scriptname, p, headers)
         response = self.conn.getresponse()
         #print response.status, response.reason
-        if response.status != "200":
+        if response.status != 200:
             print response.status, response.reason
             raise HttpHelpException
 
