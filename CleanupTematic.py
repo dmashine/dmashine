@@ -9,6 +9,7 @@
 import traceback, datetime, sys, locale
 import wikipedia
 import httphelp
+import sqlite3
 from threading import Thread
 from CategoryIntersect import CategoryIntersect
 
@@ -51,7 +52,42 @@ base = {#u'Авиация':'Aвиация',
  u'Феминизм':'Феминизм',
  u'Футбол':'Футбол',
  u'Япония':'Япония'}
-		
+
+class Storage:
+    """ Interface to sqlite."""
+    def __init__(self, name):
+        self.conn = sqlite3.connect(name)
+        self.cursor = self.conn.cursor()
+        try:
+            # Create table
+            self.cursor.execute('''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, date TEXT, month TEXT, year TEXT)''')
+            print "table created"
+        except:
+            #table already created
+            pass
+    def insert(self, oldid, name, date, month, year):
+        """Insert a row of data"""
+        try:
+            self.cursor.execute("INSERT INTO articles VALUES (%s, '%s', '%s', '%s', '%s')"%(oldid, name.replace(" ", "_"), date, month, year))
+            # Save (commit) the changes
+            self.conn.commit()
+        except sqlite3.IntegrityError:
+            pass
+    def find(self, article):
+        t = (article,)
+        re = self.cursor.execute("SELECT oldid, date, month, year FROM articles WHERE name = \"%s\"" % article.replace(" ", "_"))
+        #print re.fetchone()
+        return re.fetchone()
+        #return None
+        #if re.fetchone() == None
+    def clean(self):
+        self.cursor.execute("DELETE FROM articles")
+    def __del__(self):
+        """We can also close the connection if we are done with it.
+        Just be sure any changes have been committed or they will be lost."""
+        self.conn.commit()
+        self.conn.close()
+
 
 class CleanupTematic(Thread):
     """One thread of bot that cleans one theme"""
@@ -62,11 +98,12 @@ class CleanupTematic(Thread):
         self.text = ''
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
-        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (2.5) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
+        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.0) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """Gets article name. Adds to self.text one line of table. """
         p = wikipedia.Page(site, article)
+
         title = p.titleWithoutNamespace()
         param = ''
         for tl in p.templatesWithParams():
@@ -83,46 +120,67 @@ class CleanupTematic(Thread):
             wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
             return
-        try:  
-            month = Months[param[5:7]] # Словесное название месяца из даты
-            year = param[0:4]
-            date = param[8:10]
-            if date[0] == '0': # remove non-significant 0 from date
-                date = date[1]
-            d = datetime.date(int(year), int(param[5:7]), int(date))
-            style = ""
-            past = (datetime.date.today()-d).days
-            if past > 180: # lighting by due date from the date of nomination
-                style = 'class="bright"|'
-            elif past > 90:
-                style = 'class="highlight"|'
-        #except: # errors in date conversion
-        except Exception, e:
-            wikipedia.output(u"Ошибка конвертации даты %s: %s"%(article, e))
-            traceback.print_tb(sys.exc_info()[2])
-            self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
-            return
+        cache = Storage("articles.db")
+        
+        # Если статья есть в кеше, заполняем значения param, diff, edits
+        # Иначе обрабатываем и записываем в кеш
+        f = cache.find(article)
+        
+        if f == None: # Статья не найдена, обрабатываем        
+            try:
+                month = Months[param[5:7]] # Словесное название месяца из даты
+                year = param[0:4]
+                date = param[8:10]
+                if date[0] == '0': # remove non-significant 0 from date
+                    date = date[1]
+            #except: # errors in date conversion
+            except Exception, e:
+                wikipedia.output(u"Ошибка конвертации даты %s: %s"%(article, e))
+                traceback.print_tb(sys.exc_info()[2])
+                self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
+                return
 
-    # Определяем рост статьи с момента выставления шаблона
-        try:
-            edits = len(p.getVersionHistory(False, False, True)) #number of edits made
-            size1 = 0
-            oldid = 0 #инициализация переменных чтоб не падало
-            for l in p.fullVersionHistory(False, False, True):
-                try:
-                    text = l[3].decode("utf-8", "ignore") 
-                except Exception, e:
-                    text = l[3]
-                edits = edits-1 #эта правка без шаблона
-                if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
-                    oldid = l[0] #первая версия, где стоит шаблон
-                    size1 = len(text) # её объём
+        # Определяем рост статьи с момента выставления шаблона
+            try:
+                edits = len(p.getVersionHistory(False, False, True)) #number of edits made
+                size1 = 0
+                oldid = 0 #инициализация переменных чтоб не падало
+                for l in p.fullVersionHistory(False, False, True):
+                    try:
+                        text = l[3].decode("utf-8", "ignore") 
+                    except Exception, e:
+                        text = l[3]
+                    edits = edits-1 #эта правка без шаблона
+                    if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
+                        oldid = l[0] #первая версия, где стоит шаблон
+                        size1 = len(text) # её объём
+                        break
+                diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
+            except Exception, e:
+                self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
+                return
+            cached = "(saved to cache)"
+            cache.insert(oldid, title, date, month, year)
+        else:  # Статья найдена в кеше
+            cached = "(taken from cache)"
+            (oldid, date, month, year) = f
+            currenttext = len(p.get())
+            diff = currenttext - len(p.getOldVersion(oldid)) # found size
+            edits = 0
+            for l in p.getVersionHistory(forceReload=False, reverseOrder=False, getAll=True):
+                if l[0] != oldid:
+                    edits = edits+1
+                else:
                     break
-            diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
-        except Exception, e:
-            self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
-            return            
-        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s") % (title, self.pagename, param, diff, edits))
+
+        style = ""
+        d = datetime.date(int(year), int(param[5:7]), int(date))
+        past = (datetime.date.today()-d).days
+        if past > 180: # lighting by due date from the date of nomination
+            style = 'class="bright"|'
+        elif past > 90:
+            style = 'class="highlight"|'
+        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
         self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, date, month, year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
   
     def run(self):
@@ -137,15 +195,21 @@ class CleanupTematic(Thread):
             for name in ci:
                 self.addline(name) # дописали текст
         except Exception, e:
-            #wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
-            wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
+            wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            #wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
             traceback.print_tb(sys.exc_info()[2])
-            self.run()
+            #self.run()
             return
         self.text += "|}"
         self.save()
 # start point
 site = wikipedia.getSite()
+
+#cache = storage("articles.db")
+#cache.clean()
+#cache = None
+
+
 if len(sys.argv) >= 2: # got arguments in command line
     for i in sys.argv[1:]:
         #j = unicode(i, "mbcs") # windows
