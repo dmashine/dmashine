@@ -58,9 +58,9 @@ class Storage:
     def __init__(self, name):
         self.conn = sqlite3.connect(name)
         self.cursor = self.conn.cursor()
-        try:
+        try: # time waste here?
             # Create table
-            self.cursor.execute('''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, date TEXT, month TEXT, year TEXT)''')
+            self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, date TEXT, month TEXT, year TEXT)''')
             print "table created"
         except:
             #table already created
@@ -68,20 +68,18 @@ class Storage:
     def insert(self, oldid, name, date, month, year):
         """Insert a row of data"""
         try:
-            self.cursor.execute("INSERT INTO articles VALUES (%s, '%s', '%s', '%s', '%s')"%(oldid, name.replace(" ", "_"), date, month, year))
-            # Save (commit) the changes
+            self.cursor.execute(u"INSERT INTO articles VALUES (%s, \"%s\", \"%s\", \"%s\", \"%s\")" % (oldid, name.replace(" ", "_"), date, month, year))
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
-    def find(self, article):
-        t = (article,)
-        re = self.cursor.execute("SELECT oldid, date, month, year FROM articles WHERE name = \"%s\"" % article.replace(" ", "_"))
-        #print re.fetchone()
+            
+    def find(self, name):
+        re = self.cursor.execute(u"SELECT oldid, date, month, year FROM articles WHERE name = \"%s\"" % name.replace(" ", "_"))
         return re.fetchone()
-        #return None
-        #if re.fetchone() == None
+
     def clean(self):
-        self.cursor.execute("DELETE FROM articles")
+        self.cursor.execute(u"DELETE FROM articles")
+
     def __del__(self):
         """We can also close the connection if we are done with it.
         Just be sure any changes have been committed or they will be lost."""
@@ -96,6 +94,7 @@ class CleanupTematic(Thread):
         self.pagename = pagename
         self.catname = catname
         self.text = ''
+
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
         httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.0) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
@@ -136,18 +135,18 @@ class CleanupTematic(Thread):
             #except: # errors in date conversion
             except Exception, e:
                 wikipedia.output(u"Ошибка конвертации даты %s: %s"%(article, e))
-                traceback.print_tb(sys.exc_info()[2])
+                traceback.print_tb(sys.exc_info())#[2])
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
                 return
 
         # Определяем рост статьи с момента выставления шаблона
             try:
                 edits = len(p.getVersionHistory(False, False, True)) #number of edits made
-                size1 = 0
-                oldid = 0 #инициализация переменных чтоб не падало
+                size1 = 0 #инициализация переменных чтоб не падало
+                oldid = 0 #TODO обойти както...
                 for l in p.fullVersionHistory(False, False, True):
                     try:
-                        text = l[3].decode("utf-8", "ignore") 
+                        text = l[3].decode("utf-8", "ignore")
                     except Exception, e:
                         text = l[3]
                     edits = edits-1 #эта правка без шаблона
@@ -159,10 +158,10 @@ class CleanupTematic(Thread):
             except Exception, e:
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
-            cached = "(saved to cache)"
+            cached = u"(saved to cache)"
             cache.insert(oldid, title, date, month, year)
         else:  # Статья найдена в кеше
-            cached = "(taken from cache)"
+            cached = u"(taken from cache)"
             (oldid, date, month, year) = f
             currenttext = len(p.get())
             diff = currenttext - len(p.getOldVersion(oldid)) # found size
@@ -180,6 +179,7 @@ class CleanupTematic(Thread):
             style = 'class="bright"|'
         elif past > 90:
             style = 'class="highlight"|'
+        
         wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
         self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, date, month, year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
   
@@ -187,7 +187,7 @@ class CleanupTematic(Thread):
         """Получает тематику и родительскую категорию
         Формирует и сохраняет тематическую страницу"""
         try:
-          #self.text="== "+self.pagename+" == \n"
+            #self.text="== "+self.pagename+" == \n"
             self.text  = u'{|class="standard sortable" width="75%"\n'
             self.text += u"!Статья||Дата КУЛ||{{comment|Изменение|объём в символах}}||Правок сделано\n"
             self.text += u"|- \n"
@@ -195,8 +195,8 @@ class CleanupTematic(Thread):
             for name in ci:
                 self.addline(name) # дописали текст
         except Exception, e:
-            wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
-            #wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
+            #wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
             traceback.print_tb(sys.exc_info()[2])
             #self.run()
             return
@@ -205,7 +205,7 @@ class CleanupTematic(Thread):
 # start point
 site = wikipedia.getSite()
 
-#cache = storage("articles.db")
+#cache = Storage("articles.db")
 #cache.clean()
 #cache = None
 
