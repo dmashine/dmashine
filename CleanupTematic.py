@@ -11,6 +11,7 @@ import wikipedia
 import httphelp
 import sqlite3
 from threading import Thread
+from time import localtime, strftime
 from CategoryIntersect import CategoryIntersect
 
 Months = {'01':u'января',
@@ -61,10 +62,19 @@ class Storage:
         try: # time waste here?
             # Create table
             self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, date TEXT, month TEXT, year TEXT)''')
-            print "table created"
+            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, date TEXT)''')
+            print "tables created"
         except:
             #table already created
             pass
+    def update_topic(self, topic):
+        try:
+            self.cursor.execute(u"DELETE FROM updates WHERE topic = \"%s\"" % topic)
+            self.cursor.execute(u"INSERT INTO updates VALUES (\"%s\", \"%s\")" % (topic, strftime("%a, %d %b %Y %H:%M:%S", localtime())))
+            self.conn.commit()
+        except sqlite3.IntegrityError:
+            pass
+
     def insert(self, oldid, name, date, month, year):
         """Insert a row of data"""
         try:
@@ -179,7 +189,6 @@ class CleanupTematic(Thread):
             style = 'class="bright"|'
         elif past > 90:
             style = 'class="highlight"|'
-        
         wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
         self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, date, month, year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
   
@@ -202,6 +211,8 @@ class CleanupTematic(Thread):
             return
         self.text += "|}"
         self.save()
+        cache = Storage("articles.db")
+        cache.update_topic(self.pagename);
 # start point
 site = wikipedia.getSite()
 
