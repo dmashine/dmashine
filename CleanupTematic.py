@@ -30,7 +30,7 @@ base = {#u'Авиация':'Aвиация',
 # u'Адмиралтейство':'Флот',
  u'Азербайджан':'Азербайджан',
  u'Аниме':'Аниме', 
- u'Биология':'Биология',
+ u'Биология':['Биология', 'Организмы'], # u'Биология':'Биология',
  u'Ботаника':'Ботаника',
  u'География':'География',
  u'Бронетехника':'Бронетехника',
@@ -55,7 +55,9 @@ base = {#u'Авиация':'Aвиация',
  u'Япония':'Япония'}
 
 class Storage:
-    """ Interface to sqlite."""
+    """ Interface to sqlite.
+    TODO: https://ru.wikipedia.org/wiki/Double_checked_locking"""
+
     def __init__(self, name):
         self.conn = sqlite3.connect(name)
         self.cursor = self.conn.cursor()
@@ -70,10 +72,18 @@ class Storage:
     def update_topic(self, topic):
         try:
             self.cursor.execute(u"DELETE FROM updates WHERE topic = \"%s\"" % topic)
-            self.cursor.execute(u"INSERT INTO updates VALUES (\"%s\", \"%s\")" % (topic, strftime("%a, %d %b %Y %H:%M:%S", localtime())))
+            self.cursor.execute(u"INSERT INTO updates VALUES (\"%s\", \"%s\")" % (topic, strftime("%d %b %Y %H:%M:%S", localtime())))
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
+
+    def print_stats(self):
+        re = self.cursor.execute(u"SELECT date, topic FROM updates ORDER BY DATE;")
+        for l in re.fetchall():
+            print u"%s %s" % l
+        re = self.cursor.execute(u"SELECT count(*) FROM articles;")
+        for l in re.fetchall():
+            print u"count: %s" % l
 
     def insert(self, oldid, name, date, month, year):
         """Insert a row of data"""
@@ -204,22 +214,19 @@ class CleanupTematic(Thread):
             for name in ci:
                 self.addline(name) # дописали текст
         except Exception, e:
-            #wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
-            wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
+            wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            #wikipedia.output(u"Ошибка получения данных тематики %s"%(self.pagename))
             traceback.print_tb(sys.exc_info()[2])
             #self.run()
             return
         self.text += "|}"
         self.save()
         cache = Storage("articles.db")
-        cache.update_topic(self.pagename);
+        cache.update_topic(self.pagename)
 # start point
 site = wikipedia.getSite()
 
 #cache = Storage("articles.db")
-#cache.clean()
-#cache = None
-
 
 if len(sys.argv) >= 2: # got arguments in command line
     for i in sys.argv[1:]:
