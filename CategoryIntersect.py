@@ -17,6 +17,7 @@ class CategoryIntersect:
         else:
             catlist = tagcat
         for tag in catlist:
+            tag = tag.encode('utf-8', 'ignore')
             conn = httphelp()
             conn.server     = "toolserver.org"
             conn.scriptname = "/~daniel/WikiSense/CategoryIntersect.php"
@@ -37,6 +38,9 @@ class CategoryIntersect:
                 if not d in self.articles:
                     self.articles += [d]
         self.articles.sort()
+        if self.articles == []:
+            raise CategoryIntersectException
+        
     def __iter__(self):
         return self.articles.__iter__()
     def next(self): #__next__() in >3.0

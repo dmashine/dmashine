@@ -15,7 +15,7 @@ class httphelp:
         pass
     def lines(self, method="POST"):
         self.conn = httplib.HTTPConnection(self.server)
-        p = urllib.urlencode(self.parameters)
+        p = urllib.urlencode(self.parameters)        
         headers = {"Content-type": "application/x-www-form-urlencoded", \
                    "Accept": "text/plain"}
 

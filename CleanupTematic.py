@@ -26,7 +26,7 @@ Months = {'01':u'января',
         '10':u'октября',
         '11':u'ноября',
         '12':u'декабря'}
-base = {#u'Авиация':'Aвиация',
+base1 = {#u'Авиация':'Aвиация',
 # u'Адмиралтейство':'Флот',
  u'Азербайджан':'Азербайджан',
  u'Аниме':'Аниме', 
@@ -44,7 +44,7 @@ base = {#u'Авиация':'Aвиация',
  u'Музыка':'Музыка',
  u'Право':'Право',
  u'Православие':'Православие',
- u'Программное обеспечение':'Программное обеспечение',
+ u'Программное обеспечение':['Программное обеспечение', 'Кибернетика', 'Информатика'],
  u'Санкт-Петербург':'Санкт-Петербург',
  u'Свободное программное обеспечение':'Свободное программное обеспечение',
 # u'Транспорт':'Транспорт',
@@ -117,7 +117,7 @@ class CleanupTematic(Thread):
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
-        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.0) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
+        httphelp.save(site, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.1) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """Gets article name. Adds to self.text one line of table. """
@@ -206,7 +206,6 @@ class CleanupTematic(Thread):
         """Получает тематику и родительскую категорию
         Формирует и сохраняет тематическую страницу"""
         try:
-            #self.text="== "+self.pagename+" == \n"
             self.text  = u'{|class="standard sortable" width="75%"\n'
             self.text += u"!Статья||Дата КУЛ||{{comment|Изменение|объём в символах}}||Правок сделано\n"
             self.text += u"|- \n"
@@ -223,10 +222,24 @@ class CleanupTematic(Thread):
         self.save()
         cache = Storage("articles.db")
         cache.update_topic(self.pagename)
+
 # start point
 site = wikipedia.getSite()
-
 #cache = Storage("articles.db")
+
+def GetBase():
+    """Gets topic and categories from online"""
+    p = wikipedia.Page(site, u'Википедия:К улучшению/Тематические обсуждения/Service').get().split("\n")
+    base = {}
+    for l in p:
+        l = l.strip()
+        if len(l) > 0 and l[0]!='!':
+            [H, T] = l.split(':')
+            base[H] =  T.split(',')
+    return base
+    
+base = GetBase()
+
 
 if len(sys.argv) >= 2: # got arguments in command line
     for i in sys.argv[1:]:
