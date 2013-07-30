@@ -38,8 +38,8 @@ class CategoryIntersect:
                 if not d in self.articles:
                     self.articles += [d]
         self.articles.sort()
-        if self.articles == []:
-            raise CategoryIntersectException
+        #if self.articles == []:
+        #    raise CategoryIntersectException
         
     def __iter__(self):
         return self.articles.__iter__()
