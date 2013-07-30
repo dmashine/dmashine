@@ -14,6 +14,7 @@ class httphelp:
     def __init__(self):
         pass
     def lines(self, method="POST"):
+        """Connects to server, reads and returns lines"""
         self.conn = httplib.HTTPConnection(self.server)
         p = urllib.urlencode(self.parameters)        
         headers = {"Content-type": "application/x-www-form-urlencoded", \

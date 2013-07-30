@@ -12,7 +12,8 @@ import httphelp
 import sqlite3
 from threading import Thread
 from time import localtime, strftime
-from CategoryIntersect import CategoryIntersect
+from CategoryIntersect import CategoryIntersect, \
+                              CategoryIntersectException
 
 MONTHS = {'01':u'января',
         '02':u'февраля',
@@ -107,8 +108,13 @@ class CleanupTematic(Thread):
             if tl[0] == u'К улучшению':
                 try:
                     param = tl[1][0]
+                    month = MONTHS[param[5:7]] # Словесное название месяца из даты
+                    year = param[0:4]
+                    date = param[8:10]
+                    if date[0] == '0': # remove non-significant 0 from date
+                        date = date[1]
                 except IndexError, e:
-                    wikipedia.output(u"Статья %s без даты выставления! " % (article))
+                    wikipedia.output(u"Ошибка в дате статьи %s: %s"%(article, e))
                     self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article) # afi date not found
                     return
                 break
@@ -122,21 +128,8 @@ class CleanupTematic(Thread):
         # Если статья есть в кеше, заполняем значения param, diff, edits
         # Иначе обрабатываем и записываем в кеш
         f = cache.find(article)
-        
-        if f == None: # Статья не найдена, обрабатываем        
-            try:
-                month = MONTHS[param[5:7]] # Словесное название месяца из даты
-                year = param[0:4]
-                date = param[8:10]
-                if date[0] == '0': # remove non-significant 0 from date
-                    date = date[1]
-            #except: # errors in date conversion
-            except IndexError, e:
-                wikipedia.output(u"Ошибка конвертации даты %s: %s"%(article, e))
-                traceback.print_tb(sys.exc_info())#[2])
-                self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
-                return
 
+        if f == None: # Статья не найдена, обрабатываем
         # Определяем рост статьи с момента выставления шаблона
             try:
                 edits = len(p.getVersionHistory(False, False, True)) #number of edits made
@@ -153,7 +146,7 @@ class CleanupTematic(Thread):
                         size1 = len(text) # её объём
                         break
                 diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
-            except Exception, e:
+            except (CategoryIntersectException, httphelp.HttpHelpException), e:
                 traceback.print_tb(sys.exc_info()[2])
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
@@ -171,9 +164,10 @@ class CleanupTematic(Thread):
                 else:
                     break
 
-        style = ""
+        style = ''
         d = datetime.date(int(year), int(param[5:7]), int(date))
         past = (datetime.date.today()-d).days
+        
         if past > 180: # lighting by due date from the date of nomination
             style = 'class="bright"|'
         elif past > 90:
@@ -202,10 +196,6 @@ class CleanupTematic(Thread):
         cache = Storage("articles.db")
         cache.update_topic(self.pagename)
 
-# start point
-SITE = wikipedia.getSite()
-#cache = Storage("articles.db")
-
 def get_base():
     """Gets topic and categories from online"""
     p = wikipedia.Page(SITE, u'Википедия:К улучшению/Тематические обсуждения/Service').get().split("\n")
@@ -216,7 +206,10 @@ def get_base():
             [H, T] = l.split(':')
             b[H] =  T.split(',')
     return b
-    
+
+# start point
+SITE = wikipedia.getSite()
+#CACHE = Storage("articles.db")    
 BASE = get_base()
 
 if len(sys.argv) >= 2: # got arguments in command line
