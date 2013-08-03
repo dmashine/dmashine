@@ -25,7 +25,7 @@ class httphelp:
         #print response.status, response.reason
         if response.status != 200:
             print response.status, response.reason
-            raise HttpHelpException
+            raise HttpHelpException(u"Response status %s %s" % (response.status, response.reason))
 
         return [l.decode(self.codepage, "ignore") for l in response.read().splitlines()]
     def __del__(self):

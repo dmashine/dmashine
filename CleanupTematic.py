@@ -32,12 +32,12 @@ class Storage:
     """ Interface to sqlite."""
 
     def __init__(self, name):
-        self.conn = sqlite3.connect(name)
+        self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.cursor = self.conn.cursor()
         try: # time waste here?
             # Create table
             self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, date TEXT, month TEXT, year TEXT)''')
-            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, date TEXT)''')
+            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, ts TIMESTAMP)''')
             print "tables created"
         except sqlite3.Error:
             #table already created
@@ -46,7 +46,7 @@ class Storage:
         """Updates one topic in updates table"""
         try:
             self.cursor.execute(u"DELETE FROM updates WHERE topic = \"%s\"" % topic)
-            self.cursor.execute(u"INSERT INTO updates VALUES (\"%s\", \"%s\")" % (topic, strftime("%d %b %Y %H:%M:%S", localtime())))
+            self.cursor.execute(u"INSERT INTO updates VALUES (\"%s\", \"%s\")" % (topic, datetime.datetime.now()))
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
@@ -123,6 +123,16 @@ class CleanupTematic(Thread):
             wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
             return
+        else:
+            style = ''
+            d = datetime.date(int(year), int(param[5:7]), int(date))
+            past = (datetime.date.today()-d).days
+        
+            if past > 180: # lighting by due date from the date of nomination
+                style = 'class="bright"|'
+            elif past > 90:
+                style = 'class="highlight"|'
+
         cache = Storage("articles.db")
         
         # Если статья есть в кеше, заполняем значения param, diff, edits
@@ -144,6 +154,7 @@ class CleanupTematic(Thread):
                     if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
                         oldid = l[0] #первая версия, где стоит шаблон
                         size1 = len(text) # её объём
+#                        term  = l[1] # Момент выставления шаблона
                         break
                 diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
             except (CategoryIntersectException, httphelp.HttpHelpException), e:
@@ -164,14 +175,6 @@ class CleanupTematic(Thread):
                 else:
                     break
 
-        style = ''
-        d = datetime.date(int(year), int(param[5:7]), int(date))
-        past = (datetime.date.today()-d).days
-        
-        if past > 180: # lighting by due date from the date of nomination
-            style = 'class="bright"|'
-        elif past > 90:
-            style = 'class="highlight"|'
         wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
         self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, date, month, year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
   
