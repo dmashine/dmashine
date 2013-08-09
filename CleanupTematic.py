@@ -17,27 +17,34 @@ from CategoryIntersect import CategoryIntersect#, \
 
 MONTHS = [u'января', u'февраля', u'марта', u'апреля', u'мая', u'июня', u'июля', u'августа', u'сентября', u'октября', u'ноября', u'декабря']
 
-class Storage:
+class Storage(object):
     """ Interface to sqlite."""
+    def __new__(cls):
+        """Makes it singleton"""
+        if not hasattr(cls, 'instance'):
+             cls.instance = super(Storage, cls).__new__(cls)
+             print "instance not found"
+        return cls.instance
 
-    def __init__(self, name):
-        self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    def __init__(self, name = "articles.db"):
+        self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES, check_same_thread = False)
+        #self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.cursor = self.conn.cursor()
-        try: # time waste here?
-            # Create table
+        try:  # Create table
             self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, ts DATE)''')
-            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, ts TIMESTAMP)''')
+            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, ts TIMESTAMP, n INT)''')
             print "tables created"
         except sqlite3.Error:
             #table already created
             pass
-    def update_topic(self, topic):
+        print "Connection started %s " % self.cursor
+    def update_topic(self, topic, n):
         """Updates one topic in updates table"""
         try:
             self.cursor.execute(u"DELETE FROM updates \
                                   WHERE topic = \"%s\"" % topic)
             self.cursor.execute(u"INSERT INTO updates VALUES \
-                    (\"%s\", \"%s\")" % (topic, datetime.datetime.now()))
+                    (\"%s\", \"%s\", \"%s\")" % (topic, datetime.datetime.now(), n))
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
@@ -45,14 +52,16 @@ class Storage:
     def insert(self, oldid, name, timestamp):
         """Insert a row of data"""
         try:
-            self.cursor.execute(u"INSERT INTO articles VALUES (%s, \"%s\", \"%s\")" % (oldid, name.replace(" ", "_"), timestamp))
+            name2 = name.replace(" ", "_").replace('"', "'")
+            self.cursor.execute(u"INSERT INTO articles VALUES (%s, \"%s\", \"%s\")" % (oldid, name2, timestamp))
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
             
     def find(self, name):
         """Finds article in articles table"""
-        re = self.cursor.execute(u"SELECT oldid, ts FROM articles WHERE name = \"%s\"" % name.replace(" ", "_"))
+        name2 = name.replace(" ", "_").replace('"', "'")
+        re = self.cursor.execute(u"SELECT oldid, ts FROM articles WHERE name = \"%s\"" % name2)
         return re.fetchone()
 
     def _clean(self):
@@ -60,15 +69,6 @@ class Storage:
         self.cursor.execute(u"DELETE FROM articles")
         self.cursor.execute(u"DELETE FROM updates")
         self.conn.commit()
-        
-    def _print_stats(self):
-        """Some stats. Not used, actually"""
-        re = self.cursor.execute(u"SELECT date, topic FROM updates ORDER BY DATE;")
-        for l in re.fetchall():
-            print u"%s %s" % l
-        re = self.cursor.execute(u"SELECT count(*) FROM articles;")
-        for l in re.fetchall():
-            print u"count: %s" % l
 
     def __del__(self):
         """We can also close the connection if we are done with it.
@@ -84,10 +84,11 @@ class CleanupTematic(Thread):
         self.pagename = pagename
         self.catname = catname
         self.text = ''
+        self.cache = Storage()
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
-        httphelp.save(SITE, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.1) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
+        httphelp.save(SITE, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.2) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """Gets article name. Adds to self.text one line of table. """
@@ -111,8 +112,7 @@ class CleanupTematic(Thread):
             # what a mess, has a category, and no template
             return
 
-        cache = Storage("articles.db")
-        f = cache.find(article)
+        f = self.cache.find(article)
 
         if f == None: # Статья не найдена, обрабатываем
         # Определяем рост статьи с момента выставления шаблона
@@ -124,6 +124,7 @@ class CleanupTematic(Thread):
                 edits = len(p.getVersionHistory(False, False, True)) #number of edits made
                 size1 = 0 #инициализация переменных чтоб не падало
                 oldid = 0
+                ts = ts1
                 for l in p.fullVersionHistory(getAll = False, skipFirst = False, reverseOrder = True):
                     try:
                         text = l[3].decode("utf-8", "ignore")
@@ -142,7 +143,7 @@ class CleanupTematic(Thread):
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
             cached = u"(saved to cache)"
-            cache.insert(oldid, title, ts)
+            self.cache.insert(oldid, title, ts)
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
             (oldid, ts) = f
@@ -178,12 +179,12 @@ class CleanupTematic(Thread):
         except Exception, e:
             wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
             traceback.print_tb(sys.exc_info()[2])
-            #self.run()
+            self.run()
             return
         self.text += "|}"
         self.save()
-        cache = Storage("articles.db")
-        cache.update_topic(self.pagename)
+        cache = Storage()
+        cache.update_topic(self.pagename, len(ci))
 
 def get_base():
     """Gets topic and categories from online"""

@@ -43,6 +43,10 @@ class CategoryIntersect:
         
     def __iter__(self):
         return self.articles.__iter__()
+
+    def __len__(self):
+        return len(self.articles)
+        
     def next(self): #__next__() in >3.0
         """Returns next article in intersection"""
         if len(self.articles) == 0:
