@@ -23,7 +23,6 @@ class Storage(object):
         """Makes it singleton"""
         if not hasattr(cls, 'instance'):
              cls.instance = super(Storage, cls).__new__(cls)
-             print "instance not found"
         return cls.instance
 
     def __init__(self, name = "articles.db"):
@@ -34,6 +33,7 @@ class Storage(object):
             self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, ts DATE)''')
             self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, ts TIMESTAMP, n INT)''')
             print "tables created"
+            # CREATE TABLE IF NOT EXISTS
         except sqlite3.Error:
             #table already created
             pass
@@ -63,7 +63,17 @@ class Storage(object):
         name2 = name.replace(" ", "_").replace('"', "'")
         re = self.cursor.execute(u"SELECT oldid, ts FROM articles WHERE name = \"%s\"" % name2)
         return re.fetchone()
-
+        
+    def delete(self, name):
+        """Deletes article in articles table"""
+        name2 = name.replace(" ", "_").replace('"', "'")
+        #if self.find(name2):
+        self.cursor.execute(u"DELETE FROM articles WHERE name = \"%s\"" % name2)
+        print "%s cleared"
+        #    return True
+        return False
+        #return re.fetchone()
+        
     def _clean(self):
         """Cleans all tables. Not used."""
         self.cursor.execute(u"DELETE FROM articles")
@@ -197,18 +207,19 @@ def get_base():
             b[H] =  T.split(',')
     return b
 
-# start point
-SITE = wikipedia.getSite()
-#CACHE = Storage("articles.db")    
-BASE = get_base()
+if __name__ == "__main__":
+    # start point
+    SITE = wikipedia.getSite()
+    #CACHE = Storage("articles.db")    
+    BASE = get_base()
 
-if len(sys.argv) >= 2: # got arguments in command line
-    for i in sys.argv[1:]:
-        #j = unicode(i, "mbcs") # windows
-        j = unicode(i, locale.getpreferredencoding())
-        th = CleanupTematic(j, BASE[j])
-        th.start()
-else:
-    for i in BASE:
-        th = CleanupTematic(i, BASE[i])
-        th.start()
+    if len(sys.argv) >= 2: # got arguments in command line
+        for i in sys.argv[1:]:
+            #j = unicode(i, "mbcs") # windows
+            j = unicode(i, locale.getpreferredencoding())
+            th = CleanupTematic(j, BASE[j])
+            th.start()
+    else:
+        for i in BASE:
+            th = CleanupTematic(i, BASE[i])
+            th.start()
