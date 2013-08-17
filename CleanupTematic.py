@@ -19,6 +19,9 @@ MONTHS = [u'января', u'февраля', u'марта', u'апреля', u'
 
 class Storage(object):
     """ Interface to sqlite."""
+    def quote(self, s): 
+        return s.replace(" ", "_").replace('"', "'")
+
     def __new__(cls):
         """Makes it singleton"""
         if not hasattr(cls, 'instance'):
@@ -49,11 +52,12 @@ class Storage(object):
         except sqlite3.IntegrityError:
             pass
 
-    def insert(self, oldid, name, timestamp):
-        """Insert a row of data"""
+    def insert(self, table, values):
+        """Insert a row of values to table"""
         try:
-            name2 = name.replace(" ", "_").replace('"', "'")
-            self.cursor.execute(u"INSERT INTO articles VALUES (%s, \"%s\", \"%s\")" % (oldid, name2, timestamp))
+            v = u", ".join([u"\""+self.quote(u"%s" % s)+u"\"" for s in values])
+            s = u"INSERT INTO %s VALUES (%s);" % (table, v)
+            self.cursor.execute(s);
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
@@ -153,7 +157,7 @@ class CleanupTematic(Thread):
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
             cached = u"(saved to cache)"
-            self.cache.insert(oldid, title, ts)
+            self.cache.insert("articles", (oldid, self.cache.quote(title), ts))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
             (oldid, ts) = f
@@ -189,7 +193,7 @@ class CleanupTematic(Thread):
         except Exception, e:
             wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
             traceback.print_tb(sys.exc_info()[2])
-            self.run()
+            #self.run()
             return
         self.text += "|}"
         self.save()
