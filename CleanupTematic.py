@@ -19,16 +19,14 @@ MONTHS = [u'января', u'февраля', u'марта', u'апреля', u'
 
 class Storage(object):
     """ Interface to sqlite."""
-    def quote(self, s): 
-        return s.replace(" ", "_").replace('"', "'")
-
     def __new__(cls):
         """Makes it singleton"""
         if not hasattr(cls, 'instance'):
-             cls.instance = super(Storage, cls).__new__(cls)
+            cls.instance = super(Storage, cls).__new__(cls)
         return cls.instance
 
     def __init__(self, name = "articles.db"):
+        self.quote = lambda s: s.replace(" ", "_").replace('"', "'")
         self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES, check_same_thread = False)
         #self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.cursor = self.conn.cursor()
@@ -41,43 +39,35 @@ class Storage(object):
             #table already created
             pass
         print "Connection started %s " % self.cursor
-    def update_topic(self, topic, n):
-        """Updates one topic in updates table"""
-        try:
-            self.cursor.execute(u"DELETE FROM updates \
-                                  WHERE topic = \"%s\"" % topic)
-            self.cursor.execute(u"INSERT INTO updates VALUES \
-                    (\"%s\", \"%s\", \"%s\")" % (topic, datetime.datetime.now(), n))
-            self.conn.commit()
-        except sqlite3.IntegrityError:
-            pass
 
     def insert(self, table, values):
         """Insert a row of values to table"""
         try:
             v = u", ".join([u"\""+self.quote(u"%s" % s)+u"\"" for s in values])
             s = u"INSERT INTO %s VALUES (%s);" % (table, v)
-            self.cursor.execute(s);
+            self.cursor.execute(s)
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
             
     def find(self, name):
         """Finds article in articles table"""
-        name2 = name.replace(" ", "_").replace('"', "'")
+        name2 = self.quote(name)
         re = self.cursor.execute(u"SELECT oldid, ts FROM articles WHERE name = \"%s\"" % name2)
         return re.fetchone()
         
-    def delete(self, name):
-        """Deletes article in articles table"""
-        name2 = name.replace(" ", "_").replace('"', "'")
-        #if self.find(name2):
-        self.cursor.execute(u"DELETE FROM articles WHERE name = \"%s\"" % name2)
-        print "%s cleared"
-        #    return True
-        return False
-        #return re.fetchone()
-        
+    def delete(self, table, cond = None):
+        """Deletes rows from table, by condition cond.
+            Cond is dict: col = value"""
+        # bug here, when len(cond) > 1
+        c = ""
+        if cond:
+            c = u" WHERE "
+            for l in cond:
+                c += "%s = \"%s\"" % (l, self.quote(cond[l]))
+        s = u"DELETE FROM %s%s;" % (table, c)
+        self.cursor.execute(s)
+
     def _clean(self):
         """Cleans all tables. Not used."""
         self.cursor.execute(u"DELETE FROM articles")
@@ -157,7 +147,7 @@ class CleanupTematic(Thread):
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
             cached = u"(saved to cache)"
-            self.cache.insert("articles", (oldid, self.cache.quote(title), ts))
+            self.cache.insert("articles", (oldid, title, ts))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
             (oldid, ts) = f
@@ -178,7 +168,7 @@ class CleanupTematic(Thread):
         
         month = MONTHS[ts1.month-1]
         wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
-        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, param, style, article.replace(" ", "_"), oldid, diff, style, edits)
+        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, param, style, self.cache.quote(article), oldid, diff, style, edits)
   
     def run(self):
         """Получает тематику и родительскую категорию
@@ -198,7 +188,8 @@ class CleanupTematic(Thread):
         self.text += "|}"
         self.save()
         cache = Storage()
-        cache.update_topic(self.pagename, len(ci))
+        cache.delete("updates", {"topic":self.pagename})
+        cache.insert("updates", (self.pagename, datetime.datetime.now(), len(ci)))
 
 def get_base():
     """Gets topic and categories from online"""
