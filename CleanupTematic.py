@@ -7,15 +7,19 @@
 Для длинных списков:
         <div style="height:200px; overflow:auto; padding:3px"></div>"""
 
-import traceback, datetime, sys, locale
+import traceback, sys, locale
 import wikipedia
 import httphelp
 import sqlite3
 from threading import Thread
+from datetime import datetime, date
 from CategoryIntersect import CategoryIntersect#, \
                               #CategoryIntersectException
 
-MONTHS = [u'января', u'февраля', u'марта', u'апреля', u'мая', u'июня', u'июля', u'августа', u'сентября', u'октября', u'ноября', u'декабря']
+MONTHS = [u'января', u'февраля', u'марта',  \
+          u'апреля', u'мая', u'июня',       \
+          u'июля', u'августа', u'сентября', \
+          u'октября', u'ноября', u'декабря' ]
 
 class Storage(object):
     """ Interface to sqlite."""
@@ -92,25 +96,28 @@ class CleanupTematic(Thread):
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
-        httphelp.save(SITE, text=self.text, pagename=u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, comment=u"Статьи для срочного улучшения (3.2) тематики "+self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
+        httphelp.save(SITE, self.text,
+            u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, \
+            u"Статьи для срочного улучшения (3.2) тематики "+self.pagename,  \
+            minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """Gets article name. Adds to self.text one line of table. """
         p = wikipedia.Page(SITE, article)
         
         title = p.titleWithoutNamespace()
-        param = ''
+        parm = ''
         for tl in p.templatesWithParams():
             if tl[0] == u'К улучшению':
                 try:
-                    param = tl[1][0]
-                    ts1 = datetime.date(int(param[0:4]), int(param[5:7]), int(param[8:10]))
-                except IndexError, e:
+                    parm = tl[1][0]
+                    ts1 = date(int(parm[0:4]), int(parm[5:7]), int(parm[8:10]))
+                except (IndexError, UnicodeEncodeError), e:
                     wikipedia.output(u"Ошибка в дате статьи %s:%s"%(article, e))
                     self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article) # afi date not found
                     return
                 break
-        if param == '':
+        if parm == '':
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не обнаружен шаблон КУЛ\n|-\n' % (article)
             wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
@@ -125,23 +132,26 @@ class CleanupTematic(Thread):
         # ts1 = дата в шаблоне, ссылка на страницу обсуждения
         
             try:
-                edits = len(p.getVersionHistory(False, False, True)) #number of edits made
-                size1 = 0 #инициализация переменных чтоб не падало
+                edits = len(p.getVersionHistory(False, False, True))
+                    #number of edits made
+                diff = len(p.get()) #инициализация переменных чтоб не падало
                 oldid = 0
                 ts = ts1
-                for l in p.fullVersionHistory(getAll = False, skipFirst = False, reverseOrder = True):
+                for l in p.fullVersionHistory(getAll = False, \
+                            skipFirst = False, reverseOrder = True):
                     try:
                         text = l[3].decode("utf-8", "ignore")
                     except UnicodeEncodeError, e:
                         text = l[3]
-                    edits = edits-1 #эта правка без шаблона
-                    if (text.find(u'{{к улучшению') != -1) or (text.find(u'{{К улучшению') != -1):
-                        oldid = l[0] #первая версия, где стоит шаблон
-                        size1 = len(text) # её объём
+                    edits = edits-1 # эта правка без шаблона
+                    if (text.find(u'{{к улучшению') != -1) or \
+                       (text.find(u'{{К улучшению') != -1):
+                        oldid = l[0] # первая версия, где стоит шаблон
+                        diff -= len(text) # Изменение объёма статьи
                          # Момент выставления шаблона
                         ts  = datetime.date(int(l[1][0:4]), int(l[1][5:7]), int(l[1][8:10]))
                         break
-                diff = len(p.get())-size1 # Изменение объёма статьи с момента простановки шаблона
+
             except Exception, e:
                 traceback.print_tb(sys.exc_info()[2])
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
@@ -159,7 +169,7 @@ class CleanupTematic(Thread):
                 else:
                     break
         style = ''
-        past = (datetime.date.today()-ts).days
+        past = (date.today()-ts).days
         if past > 180: # lighting by due date from the date of nomination
             style = 'class="bright"|'
         elif past > 90:
@@ -167,8 +177,8 @@ class CleanupTematic(Thread):
         
         
         month = MONTHS[ts1.month-1]
-        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, param, diff, edits, cached))
-        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, param, style, self.cache.quote(article), oldid, diff, style, edits)
+        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, parm, diff, edits, cached))
+        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, parm, style, self.cache.quote(article), oldid, diff, style, edits)
   
     def run(self):
         """Получает тематику и родительскую категорию
@@ -177,19 +187,21 @@ class CleanupTematic(Thread):
             self.text  = u'{|class="standard sortable" width="75%"\n'
             self.text += u"!Статья||Дата КУЛ||{{comment|Изменение|объём в символах}}||Правок сделано\n"
             self.text += u"|- \n"
-            ci = CategoryIntersect('Википедия:Статьи для срочного улучшения', self.catname)
+            ci = CategoryIntersect('Википедия:Статьи для срочного улучшения', \
+                                    self.catname)
             for name in ci:
                 self.addline(name) # дописали текст
         except Exception, e:
-            wikipedia.output(u"Ошибка получения данных тематики %s: %s"%(self.pagename, e))
+            wikipedia.output(u"Ошибка получения данных тематики %s: %s"% \
+                                    (self.pagename, e))
             traceback.print_tb(sys.exc_info()[2])
-            #self.run()
+            self.run()
             return
         self.text += "|}"
         self.save()
         cache = Storage()
         cache.delete("updates", {"topic":self.pagename})
-        cache.insert("updates", (self.pagename, datetime.datetime.now(), len(ci)))
+        cache.insert("updates", (self.pagename, datetime.now(), len(ci)))
 
 def get_base():
     """Gets topic and categories from online"""
