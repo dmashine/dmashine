@@ -34,16 +34,15 @@ class Storage(object):
         self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES, check_same_thread = False)
         #self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.cursor = self.conn.cursor()
-        try:  # Create table
-            self.cursor.execute(u'''CREATE TABLE articles (oldid INT UNIQUE, name TEXT, ts DATE)''')
-            self.cursor.execute(u'''CREATE TABLE updates (topic TEXT, ts TIMESTAMP, n INT)''')
-            print "tables created"
-            # CREATE TABLE IF NOT EXISTS
-        except sqlite3.Error:
-            #table already created
-            pass
         print "Connection started %s " % self.cursor
-
+    
+    def create(self, table, col):
+        """Create table with columns col"""
+        c = ", ".join(["%s %s" % (_, col[_]) for _ in col])
+        s = '''CREATE TABLE IF NOT EXISTS %s (%s)''' % (table, c)
+        self.cursor.execute(s)
+        self.conn.commit()
+    
     def insert(self, table, values):
         """Insert a row of values to table"""
         try:
@@ -53,13 +52,25 @@ class Storage(object):
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
-            
-    def find(self, name):
-        """Finds article in articles table"""
-        name2 = self.quote(name)
-        re = self.cursor.execute(u"SELECT oldid, ts FROM articles WHERE name = \"%s\"" % name2)
+
+    def findone(self, table, cond = None, what = None):
+        """returns one row (columns what) from table, by condition cond.
+            Cond is dict: col = value"""
+        # bug here, when len(cond) > 1
+        c = ""
+        if what == None:
+            w = "*"
+        else:
+            w = ", ".join(what)
+        if cond:
+            c = u" WHERE "
+            for l in cond:
+                c += "%s = \"%s\"" % (l, self.quote(cond[l]))
+
+        s = u"SELECT %s FROM %s%s;" % (w, table, c)
+        re = self.cursor.execute(s)
         return re.fetchone()
-        
+
     def delete(self, table, cond = None):
         """Deletes rows from table, by condition cond.
             Cond is dict: col = value"""
@@ -93,6 +104,8 @@ class CleanupTematic(Thread):
         self.catname = catname
         self.text = ''
         self.cache = Storage()
+        self.cache.create("updates", {"topic":"TEXT", "ts":"TIMESTAMP", "n":"INT"})
+        self.cache.create("articles", {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE"})
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
@@ -123,7 +136,7 @@ class CleanupTematic(Thread):
             # what a mess, has a category, and no template
             return
 
-        f = self.cache.find(article)
+        f = self.cache.findone("articles", {"name":article}, ["oldid", "ts"])
 
         if f == None: # Статья не найдена, обрабатываем
         # Определяем рост статьи с момента выставления шаблона
@@ -134,6 +147,7 @@ class CleanupTematic(Thread):
             try:
                 edits = len(p.getVersionHistory(False, False, True))
                     #number of edits made
+                    # вот edits надо както порефакторить
                 diff = len(p.get()) #инициализация переменных чтоб не падало
                 oldid = 0
                 ts = ts1
@@ -148,8 +162,8 @@ class CleanupTematic(Thread):
                        (text.find(u'{{К улучшению') != -1):
                         oldid = l[0] # первая версия, где стоит шаблон
                         diff -= len(text) # Изменение объёма статьи
-                         # Момент выставления шаблона
-                        ts  = datetime.date(int(l[1][0:4]), int(l[1][5:7]), int(l[1][8:10]))
+                        # Момент выставления шаблона
+                        ts  = date(int(l[1][0:4]), int(l[1][5:7]), int(l[1][8:10]))
                         break
 
             except Exception, e:

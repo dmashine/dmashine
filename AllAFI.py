@@ -14,19 +14,22 @@ class AllAFI:
     def __init__(self, action):
         self.action = action
         self.site = wikipedia.getSite()
-        self.afi = catlib.Category(self.site, u'Категория:Википедия:Статьи для срочного улучшения')
+        self.afi = catlib.Category(self.site, \
+            u'Категория:Википедия:Статьи для срочного улучшения')
+        self.afi_list = []
         self.conn = sqlite3.connect('articles.db')
         self.cursor = self.conn.cursor()        
     def load_all(self):
         """Loads all articles for improvement to sqlite table"""
         # Move table creation to Cache module
         try:  # Create table
-            self.cursor.execute(u'''CREATE TABLE category (name TEXT, cat TEXT)''')
+            self.cursor.execute(u'CREATE TABLE category (name TEXT, cat TEXT)')
             print "table created"
         except sqlite3.Error:
             #table already created.
             self.cursor.execute(u"DELETE FROM category")
-
+        self.afi_list = self.afi.articlesList()
+        
         for a in self.afi_list:
             print a
             for cat in a.categories():
@@ -71,7 +74,6 @@ class AllAFI:
     def run(self):
         """entry point"""
         if self.action == "all":
-            self.afi_list = self.afi.articlesList()
             self.load_all()
         self.update_stats()
 
