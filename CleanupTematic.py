@@ -184,7 +184,7 @@ class CleanupTematic(Thread):
                     edits = edits+1
                 else:
                     break
-        f = min([_ for _ in d if _ > x])
+        f = min([_ for _ in D if _ > (datetime.date.today()-ts).days])
         style = D[f]
         
         
