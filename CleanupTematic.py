@@ -184,9 +184,8 @@ class CleanupTematic(Thread):
                     edits = edits+1
                 else:
                     break
-        f = [_ for _ in D if _ > (date.today()-ts).days]
-        f.sort()
-        style = D[f[0]]
+        f = min([_ for _ in d if _ > x])
+        style = D[f]
         
         
         month = MONTHS[ts1.month-1]
