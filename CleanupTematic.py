@@ -137,54 +137,49 @@ class CleanupTematic(Thread):
             wikipedia.output(u"Статья %s без шаблона! " % (article))
             # what a mess, has a category, and no template
             return
-
+        try:
+            hist = p.fullVersionHistory(False, False, True)
+            edits = len(hist) #number of edits made
+        except wikipedia.Error, e:
+            traceback.print_tb(sys.exc_info()[2])
+            self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
+            return
         f = self.cache.findone("articles", {"name":article}, ["oldid", "ts"])
-
         if f == None: # Статья не найдена, обрабатываем
         # Определяем рост статьи с момента выставления шаблона
         # ts  = дата простановки шаблона,
         #         хранится в кэше/первый раз берется в истории
         # ts1 = дата в шаблоне, ссылка на страницу обсуждения
-        
-            try:
-                edits = len(p.getVersionHistory(False, False, True))
-                    #number of edits made
-                    # вот edits надо както порефакторить
-                diff = len(p.get()) #инициализация переменных чтоб не падало
-                oldid = 0
-                ts = ts1
-                for l in p.fullVersionHistory(getAll = False, \
-                            skipFirst = False, reverseOrder = True):
-                    try:
-                        text = l[3].decode("utf-8", "ignore")
-                    except UnicodeEncodeError, e:
-                        text = l[3]
-                    edits = edits-1 # эта правка без шаблона
-                    if (text.find(u'{{к улучшению') != -1) or \
-                       (text.find(u'{{К улучшению') != -1):
-                        oldid = l[0] # первая версия, где стоит шаблон
-                        diff -= len(text) # Изменение объёма статьи
-                        # Момент выставления шаблона
-                        ts  = date(int(l[1][0:4]), int(l[1][5:7]), int(l[1][8:10]))
-                        break
 
-            except Exception, e:
-                traceback.print_tb(sys.exc_info()[2])
-                self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
-                return
+            diff = len(p.get()) #инициализация переменных чтоб не падало
+            oldid = 0
+            ts = ts1
+            for l in hist:
+                try:
+                    text = l[3].decode("utf-8", "ignore")
+                except UnicodeEncodeError, e:
+                    text = l[3]
+                edits = edits-1 # эта правка без шаблона
+                if (text.find(u'{{к улучшению') != -1) or \
+                   (text.find(u'{{К улучшению') != -1):
+                    oldid = l[0] # первая версия, где стоит шаблон
+                    diff -= len(text) # Изменение объёма статьи
+                    # Момент выставления шаблона
+                    ts  = date(int(l[1][0:4]), int(l[1][5:7]), int(l[1][8:10]))
+                    break
+
             cached = u"(saved to cache)"
             self.cache.insert("articles", (oldid, ts, title))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
             (oldid, ts) = f
             diff = len(p.get()) - len(p.getOldVersion(oldid)) # found size
-            edits = 0
-            for l in p.getVersionHistory(forceReload=False, reverseOrder=False, getAll=True):
-                if l[0] != oldid:
-                    edits = edits+1
-                else:
+            for l in hist:
+                edits = edits-1
+                if l[0] == oldid:
                     break
-        style = D[min([_ for _ in D if _ > (datetime.date.today()-ts).days])]
+        # lighting by due date from the date of nomination
+        style = D[min([_ for _ in D if _ > (date.today()-ts).days])]
         
         
         month = MONTHS[ts1.month-1]

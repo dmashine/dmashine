@@ -22,7 +22,7 @@ class AllAFI:
         self.cache.create('category', {'name':'TEXT', 'cat':'TEXT'})
         self.cache.delete('category')
         self.afi_list = self.afi.articlesList()
-        self.afi_list_title = [_.title(withNamespace=False) for _ in self.afi.articlesList()]
+        self.afi_list_title = [self.cache.quote(_.title(withNamespace=False)) for _ in self.afi.articlesList()]
         
         for a in self.afi_list:
             print a

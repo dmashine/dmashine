@@ -32,12 +32,13 @@ class CategoryIntersect:
             lines = conn.lines()
             while len(lines) != 0:
                 data = lines.pop(0) # this deletes item.
-                if data.find(u"Database Error")>0: # check for db error
+                if (data.find(u"Database Error")>0) or (data == u''): # check for db error
                     raise CategoryIntersectException(u"Database error")
                 d = data[data.find("[[")+2:data.find("]]")]
-                if not d in self.articles:
+                if (not d in self.articles):
                     self.articles += [d]
         self.articles.sort()
+
         #if self.articles == []:
         #    raise CategoryIntersectException
         
