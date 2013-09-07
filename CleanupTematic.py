@@ -21,6 +21,8 @@ MONTHS = [u'января', u'февраля', u'марта',  \
           u'июля', u'августа', u'сентября', \
           u'октября', u'ноября', u'декабря' ]
 
+D = {91: '', 181:'class="highlight"|', 1e10: 'class="bright"|'}
+
 class Storage(object):
     """ Interface to sqlite."""
     def __new__(cls):
@@ -32,7 +34,6 @@ class Storage(object):
     def __init__(self, name = "articles.db"):
         self.quote = lambda s: s.replace(" ", "_").replace('"', "'")
         self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES, check_same_thread = False)
-        #self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.cursor = self.conn.cursor()
         print "Connection started %s " % self.cursor
     
@@ -52,7 +53,8 @@ class Storage(object):
             self.conn.commit()
         except sqlite3.IntegrityError:
             pass
-
+        # А если ошибка sqlite.ProgrammingError Recursive use of cursors not allowed. подождать и повторить
+        # (просто заблокирована база )
     def findone(self, table, cond = None, what = None):
         """returns one row (columns what) from table, by condition cond.
             Cond is dict: col = value"""
@@ -104,14 +106,14 @@ class CleanupTematic(Thread):
         self.catname = catname
         self.text = ''
         self.cache = Storage()
-        self.cache.create("updates", {"topic":"TEXT", "ts":"TIMESTAMP", "n":"INT"})
+        self.cache.create("updates", {"topic":"TEXT", "ts":"DATE", "n":"INT"})
         self.cache.create("articles", {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE"})
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
-        httphelp.save(SITE, self.text,
-            u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, \
-            u"Статьи для срочного улучшения (3.2) тематики "+self.pagename,  \
+        httphelp.save(SITE, text = self.text,
+            pagename = u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, \
+            comment  = u"Статьи для срочного улучшения (3.2) тематики "+ self.pagename, \
             minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
@@ -171,7 +173,7 @@ class CleanupTematic(Thread):
                 self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
                 return
             cached = u"(saved to cache)"
-            self.cache.insert("articles", (oldid, title, ts))
+            self.cache.insert("articles", (oldid, ts, title))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
             (oldid, ts) = f
@@ -182,12 +184,9 @@ class CleanupTematic(Thread):
                     edits = edits+1
                 else:
                     break
-        style = ''
-        past = (date.today()-ts).days
-        if past > 180: # lighting by due date from the date of nomination
-            style = 'class="bright"|'
-        elif past > 90:
-            style = 'class="highlight"|'
+        f = [_ for _ in D if _ > (date.today()-ts).days]
+        f.sort()
+        style = D[f[0]]
         
         
         month = MONTHS[ts1.month-1]
@@ -215,7 +214,7 @@ class CleanupTematic(Thread):
         self.save()
         cache = Storage()
         cache.delete("updates", {"topic":self.pagename})
-        cache.insert("updates", (self.pagename, datetime.now(), len(ci)))
+        cache.insert("updates", (self.pagename, datetime.date(datetime.now()), len(ci)))
 
 def get_base():
     """Gets topic and categories from online"""
