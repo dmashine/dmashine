@@ -10,93 +10,19 @@
 import traceback, sys, locale
 import wikipedia
 import httphelp
-import sqlite3
+from Storage import Storage
+from AllAFI import AllAFI
 from threading import Thread
 from datetime import datetime, date
 from CategoryIntersect import CategoryIntersect#, \
                               #CategoryIntersectException
 
 MONTHS = [u'января', u'февраля', u'марта',  \
-          u'апреля', u'мая', u'июня',       \
+          u'апреля', u'мая',     u'июня',   \
           u'июля', u'августа', u'сентября', \
           u'октября', u'ноября', u'декабря' ]
 
-D = {91: '', 181:'class="highlight"|', 1e10: 'class="bright"|'}
-
-class Storage(object):
-    """ Interface to sqlite."""
-    def __new__(cls):
-        """Makes it singleton"""
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Storage, cls).__new__(cls)
-        return cls.instance
-
-    def __init__(self, name = "articles.db"):
-        self.quote = lambda s: s.replace(" ", "_").replace('"', "'")
-        self.conn = sqlite3.connect(name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES, check_same_thread = False)
-        self.cursor = self.conn.cursor()
-        print "Connection started %s " % self.cursor
-    
-    def create(self, table, col):
-        """Create table with columns col"""
-        c = ", ".join(["%s %s" % (_, col[_]) for _ in col])
-        s = '''CREATE TABLE IF NOT EXISTS %s (%s)''' % (table, c)
-        self.cursor.execute(s)
-        self.conn.commit()
-    
-    def insert(self, table, values):
-        """Insert a row of values to table"""
-        try:
-            v = u", ".join([u"\""+self.quote(u"%s" % s)+u"\"" for s in values])
-            s = u"INSERT INTO %s VALUES (%s);" % (table, v)
-            self.cursor.execute(s)
-            self.conn.commit()
-        except sqlite3.IntegrityError:
-            pass
-        # А если ошибка sqlite.ProgrammingError Recursive use of cursors not allowed. подождать и повторить
-        # (просто заблокирована база )
-    def findone(self, table, cond = None, what = None):
-        """returns one row (columns what) from table, by condition cond.
-            Cond is dict: col = value"""
-        # bug here, when len(cond) > 1
-        c = ""
-        if what == None:
-            w = "*"
-        else:
-            w = ", ".join(what)
-        if cond:
-            c = u" WHERE "
-            for l in cond:
-                c += "%s = \"%s\"" % (l, self.quote(cond[l]))
-
-        s = u"SELECT %s FROM %s%s;" % (w, table, c)
-        re = self.cursor.execute(s)
-        return re.fetchone()
-
-    def delete(self, table, cond = None):
-        """Deletes rows from table, by condition cond.
-            Cond is dict: col = value"""
-        # bug here, when len(cond) > 1
-        c = ""
-        if cond:
-            c = u" WHERE "
-            for l in cond:
-                c += "%s = \"%s\"" % (l, self.quote(cond[l]))
-        s = u"DELETE FROM %s%s;" % (table, c)
-        self.cursor.execute(s)
-
-    def _clean(self):
-        """Cleans all tables. Not used."""
-        self.cursor.execute(u"DELETE FROM articles")
-        self.cursor.execute(u"DELETE FROM updates")
-        self.conn.commit()
-
-    def __del__(self):
-        """We can also close the connection if we are done with it.
-        Just be sure any changes have been committed or they will be lost."""
-        self.conn.commit()
-        self.conn.close()
-
+D = {-1: '', 90:'class="highlight"|', 180: 'class="bright"|'}
 
 class CleanupTematic(Thread):
     """One thread of bot that cleans one theme"""
@@ -107,17 +33,19 @@ class CleanupTematic(Thread):
         self.text = ''
         self.cache = Storage()
         self.cache.create("updates", {"topic":"TEXT", "ts":"DATE", "n":"INT"})
-        self.cache.create("articles", {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE"})
+        self.cache.create("articles", \
+                    {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE"})
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
         httphelp.save(SITE, text = self.text,
             pagename = u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, \
-            comment  = u"Статьи для срочного улучшения (3.2) тематики "+ self.pagename, \
-            minoredit=minoredit, botflag=botflag, dry=dry)
+            comment  = u"Статьи для срочного улучшения (3.2) тематики "\
+                + self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
         """Gets article name. Adds to self.text one line of table. """
+
         p = wikipedia.Page(SITE, article)
         
         title = p.titleWithoutNamespace()
@@ -125,12 +53,12 @@ class CleanupTematic(Thread):
         for tl in p.templatesWithParams():
             if tl[0] == u'К улучшению':
                 try:
-                    parm = tl[1][0]
-                    ts1 = date(int(parm[0:4]), int(parm[5:7]), int(parm[8:10]))
-                except (IndexError, UnicodeEncodeError), e:
+                    parm = tl[1][0].split('-')
+                    ts1 = date(int(parm[0]), int(parm[1]), int(parm[2]))
+                except (IndexError, UnicodeEncodeError, ValueError), e:
                     wikipedia.output(u"Ошибка в дате статьи %s:%s"%(article, e))
-                    self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article) # afi date not found
-                    return
+                    self.text += u'|class="shadow"|[[%s]]||colspan="3"|Некорректные параметры шаблона КУЛ\n|-\n' % (article)
+                    return # afi date not found
                 break
         if parm == '':
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не обнаружен шаблон КУЛ\n|-\n' % (article)
@@ -179,12 +107,12 @@ class CleanupTematic(Thread):
                 if l[0] == oldid:
                     break
         # lighting by due date from the date of nomination
-        style = D[min([_ for _ in D if _ > (date.today()-ts).days])]
+        style = D[max([_ for _ in D if _ < (date.today()-ts).days])]
         
         
         month = MONTHS[ts1.month-1]
-        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, parm, diff, edits, cached))
-        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, parm, style, self.cache.quote(article), oldid, diff, style, edits)
+        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, ts1, diff, edits, cached))
+        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, ts1, style, self.cache.quote(article), oldid, diff, style, edits)
   
     def run(self):
         """Получает тематику и родительскую категорию
@@ -207,7 +135,8 @@ class CleanupTematic(Thread):
         self.save()
         cache = Storage()
         cache.delete("updates", {"topic":self.pagename})
-        cache.insert("updates", (self.pagename, datetime.date(datetime.now()), len(ci)))
+        cache.insert("updates", \
+                    (self.pagename, datetime.date(datetime.now()), len(ci)))
 
 def get_base():
     """Gets topic and categories from online"""
@@ -222,12 +151,16 @@ def get_base():
 
 if __name__ == "__main__":
     # start point
-    SITE = wikipedia.getSite()
-    #CACHE = Storage("articles.db")    
-    BASE = get_base()
 
     if len(sys.argv) >= 2: # got arguments in command line
+        if sys.argv[1] == "stats" or sys.argv[1] == "all":
+            A = AllAFI(sys.argv[1])
+            A.run()
+            sys.exit()
         for i in sys.argv[1:]:
+            SITE = wikipedia.getSite()
+            #CACHE = Storage("articles.db")    
+            BASE = get_base()
             #j = unicode(i, "mbcs") # windows
             j = unicode(i, locale.getpreferredencoding())
             th = CleanupTematic(j, BASE[j])

@@ -5,7 +5,7 @@
  License GNU GPL v3 / Beerware """
 
 import catlib, wikipedia, sys # pywikipedia and category module
-from CleanupTematic import Storage
+from Storage import Storage
 
 class AllAFI:
     """module for AFI stats update"""
