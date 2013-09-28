@@ -151,6 +151,9 @@ def get_base():
 
 if __name__ == "__main__":
     # start point
+    SITE = wikipedia.getSite()
+    #CACHE = Storage("articles.db")    
+    BASE = get_base()
 
     if len(sys.argv) >= 2: # got arguments in command line
         if sys.argv[1] == "stats" or sys.argv[1] == "all":
@@ -158,9 +161,6 @@ if __name__ == "__main__":
             A.run()
             sys.exit()
         for i in sys.argv[1:]:
-            SITE = wikipedia.getSite()
-            #CACHE = Storage("articles.db")    
-            BASE = get_base()
             #j = unicode(i, "mbcs") # windows
             j = unicode(i, locale.getpreferredencoding())
             th = CleanupTematic(j, BASE[j])
