@@ -12,6 +12,7 @@ import wikipedia
 import httphelp
 from Storage import Storage
 from AllAFI import AllAFI
+from ReplicsCounter import ReplicsCounter
 from threading import Thread
 from datetime import datetime, date
 from CategoryIntersect import CategoryIntersect#, \
@@ -40,7 +41,7 @@ class CleanupTematic(Thread):
         """Saves data to wikipedia page"""
         httphelp.save(SITE, text = self.text,
             pagename = u"Википедия:К улучшению/Тематические обсуждения/"+self.pagename, \
-            comment  = u"Статьи для срочного улучшения (3.2) тематики "\
+            comment  = u"Статьи для срочного улучшения (3.3) тематики "\
                 + self.pagename, minoredit=minoredit, botflag=botflag, dry=dry)
   
     def addline(self, article):
@@ -109,17 +110,18 @@ class CleanupTematic(Thread):
         # lighting by due date from the date of nomination
         style = D[max([_ for _ in D if _ < (date.today()-ts).days])]
         
-        
+        replics = COUNTER.replicsPage(title)
         month = MONTHS[ts1.month-1]
-        wikipedia.output((u"Статья %s /%s/ выставлена %s, изменение %s, правок %s %s") % (title, self.pagename, ts1, diff, edits, cached))
-        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % (style, article, style, ts1.day, month, ts1.year, article, ts1, style, self.cache.quote(article), oldid, diff, style, edits)
+        wikipedia.output((u"Статья %s /%s/ выставлена %s, реплик %s, изменение %s, правок %s %s") % (title, self.pagename, ts1, replics, diff, edits, cached))
+        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s%s||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" %\
+                    (style, article, style, ts1.day, month, ts1.year, article, ts1, style, replics, style, self.cache.quote(article), oldid, diff, style, edits)
   
     def run(self):
         """Получает тематику и родительскую категорию
         Формирует и сохраняет тематическую страницу"""
         try:
             self.text  = u'{|class="standard sortable" width="75%"\n'
-            self.text += u"!Статья||Дата КУЛ||{{comment|Изменение|объём в символах}}||Правок сделано\n"
+            self.text += u"!Статья||Дата КУЛ||{{comment|Реплик|Строк в обсуждении}}||{{comment|Изменение|объём в символах}}||Правок сделано\n"
             self.text += u"|- \n"
             ci = CategoryIntersect('Википедия:Статьи для срочного улучшения', \
                                     self.catname)
@@ -154,7 +156,10 @@ if __name__ == "__main__":
     SITE = wikipedia.getSite()
     #CACHE = Storage("articles.db")    
     BASE = get_base()
-
+    COUNTER = ReplicsCounter()
+    
+    #COUNTER.countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
+    
     if len(sys.argv) >= 2: # got arguments in command line
         if sys.argv[1] == "stats" or sys.argv[1] == "all":
             A = AllAFI(sys.argv[1])

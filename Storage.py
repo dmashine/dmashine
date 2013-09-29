@@ -2,8 +2,7 @@
 # -*- coding: utf-8-*-
 """Автор: http://ru.wikipedia.org/wiki/Участник:Drakosh
 Лицензирование: GNU GPL v3 / Beerware.
-Для длинных списков:
-        <div style="height:200px; overflow:auto; padding:3px"></div>"""
+"""
 
 import sqlite3
 from time import sleep
