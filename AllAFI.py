@@ -52,13 +52,18 @@ class AllAFI:
         re = self.cache.cursor.execute(u"SELECT name, ts FROM articles ORDER BY ts limit 20;")
         for l in re.fetchall():
             text += u"* [[%s]] (%s) \r\n" % l
-
+        
+        re = self.cache.cursor.execute("SELECT count(*), replics FROM articles GROUP BY replics;")
+        text += u"== По количеству реплик == \r\n"
+        for l in re.fetchall():
+            text += u"* Обсуждения %s статей имеют %s реплик\r\n" % (l)
+        
         re = self.cache.cursor.execute("SELECT topic, topic, n, ts FROM updates ORDER BY n DESC;")
         text += u"== Последние обновления == \r\n"
         for l in re.fetchall():
             text += u"* [[Википедия:К улучшению/Тематические обсуждения/%s|%s]]: (Статей %s, обновлена %s) \r\n" % (l)
         text += u"== Примечания ==\r\n{{примечания}}"
-
+        
         P = wikipedia.Page(self.site, u"Википедия:К улучшению/Тематические обсуждения/Статистика")
         P.put(text, u"Обновление статистики", botflag = True)
 

@@ -35,7 +35,7 @@ class CleanupTematic(Thread):
         self.cache = Storage()
         self.cache.create("updates", {"topic":"TEXT", "ts":"DATE", "n":"INT"})
         self.cache.create("articles", \
-                    {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE"})
+                    {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE", "replics": "INT"})
 
     def save(self, minoredit=True, botflag=True, dry=False):
         """Saves data to wikipedia page"""
@@ -73,7 +73,8 @@ class CleanupTematic(Thread):
             traceback.print_tb(sys.exc_info()[2])
             self.text += u'|class="shadow"|[[%s]]||colspan="3"|Не удалось обработать\n|-\n' % (article)
             return
-        f = self.cache.findone("articles", {"name":article}, ["oldid", "ts"])
+        replics = 0
+        f = self.cache.findone("articles", {"name":article}, ["oldid", "ts", "replics"])
         if f == None: # Статья не найдена, обрабатываем
         # Определяем рост статьи с момента выставления шаблона
         # ts  = дата простановки шаблона,
@@ -82,6 +83,7 @@ class CleanupTematic(Thread):
 
             diff = len(p.get()) #инициализация переменных чтоб не падало
             oldid = 0
+            
             ts = ts1
             for l in hist:
                 try:
@@ -98,10 +100,10 @@ class CleanupTematic(Thread):
                     break
 
             cached = u"(saved to cache)"
-            self.cache.insert("articles", (oldid, ts, title))
+            self.cache.insert("articles", (0, oldid, ts, title))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
-            (oldid, ts) = f
+            (oldid, ts ,replics) = f
             diff = len(p.get()) - len(p.getOldVersion(oldid)) # found size
             for l in hist:
                 edits = edits-1
@@ -110,7 +112,7 @@ class CleanupTematic(Thread):
         # lighting by due date from the date of nomination
         style = D[max([_ for _ in D if _ < (date.today()-ts).days])]
         
-        replics = COUNTER.replicsPage(title)
+        #replics = COUNTER.replicsPage(title)
         month = MONTHS[ts1.month-1]
         wikipedia.output((u"Статья %s /%s/ выставлена %s, реплик %s, изменение %s, правок %s %s") % (title, self.pagename, ts1, replics, diff, edits, cached))
         self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s%s||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" %\

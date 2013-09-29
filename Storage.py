@@ -25,6 +25,7 @@ class Storage(object):
     
     def execute(self, query):
         """Executes"""
+        #print query
         while True: # returns if query done
             try:
                 r = self.cursor.execute(query)

@@ -8,7 +8,8 @@ from Storage import Storage
 class ReplicsCounter():
     def __init__(self):
         self.cache = Storage()
-        self.cache.create("replics", {"name":"TEXT", "n":"INT"})
+        self.cache.create("articles", \
+                    {"oldid":"INT UNIQUE", "name":"TEXT", "ts":"DATE", "replics": "INT"})
     def countPage(self, page):
         """Counts repics at AFI page"""
         sections = {}
@@ -31,23 +32,22 @@ class ReplicsCounter():
                     if sline[:2] != "{{" and sline[:-2] != "}}":
                         replics += 1
                         #print "%s %s" % (replics, line)
-            # print u"%s %s %s" % (s, sections[s], replics)
-            self.cache.delete('replics', {"name":s})
-            self.cache.insert('replics', (s, replics))
+            print u"%s %s %s" % (s, sections[s], replics)
+            self.cache.execute(u'UPDATE articles SET replics = %s WHERE name = "%s";' % (replics, self.cache.quote(s)))
     def countCat(self, catname):
-        self.cache.delete('replics')
         cat = catlib.Category(wikipedia.getSite(), catname)
         for page in cat.articles():
             print page
             self.countPage(page)
     def replicsPage(self, pagename):
-        r = self.cache.findone('replics', {"name":pagename})
+        r = self.cache.findone('articles', {"name":pagename}, what = ["replics"])
         if r == None:
-            return -1
+            return "-"
         else:
-            return r[1]
+            return r[0]
 if __name__ == "__main__":
     counter = ReplicsCounter()
     counter.countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
+    #counter.countPage(wikipedia.Page(wikipedia.getSite(), u"Википедия:К улучшению/5 августа 2013"))
     print counter.replicsPage(u"Килдерри")
-    print counter.replicsPage(u"ыфукпук")
+    print counter.replicsPage(u"АМХ-40")
