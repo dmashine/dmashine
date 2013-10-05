@@ -103,7 +103,7 @@ class CleanupTematic(Thread):
             self.cache.insert("articles", (0, oldid, ts, title))
         else:# Статья найдена в кеше
             cached = u"(taken from cache)"
-            (oldid, ts ,replics) = f
+            (oldid, ts, replics) = f
             diff = len(p.get()) - len(p.getOldVersion(oldid)) # found size
             for l in hist:
                 edits = edits-1
@@ -111,11 +111,10 @@ class CleanupTematic(Thread):
                     break
         # lighting by due date from the date of nomination
         style = D[max([_ for _ in D if _ < (date.today()-ts).days])]
-        
-        #replics = COUNTER.replicsPage(title)
+
         month = MONTHS[ts1.month-1]
         wikipedia.output((u"Статья %s /%s/ выставлена %s, реплик %s, изменение %s, правок %s %s") % (title, self.pagename, ts1, replics, diff, edits, cached))
-        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s%s||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" %\
+        self.text += u"|%s[[%s]]||%s[[Википедия:К улучшению/%s %s %s#%s|%s]]||%s%s||%s[http://ru.wikipedia.org/w/index.php?title=%s&diff=cur&oldid=%s %s]||%s%s \n|-\n" % \
                     (style, article, style, ts1.day, month, ts1.year, article, ts1, style, replics, style, self.cache.quote(article), oldid, diff, style, edits)
   
     def run(self):
@@ -136,6 +135,7 @@ class CleanupTematic(Thread):
             self.run()
             return
         self.text += "|}"
+        self.text += u"<noinclude>[[Категория:Википедия:Списки статей к улучшению]]</noinclude>"
         self.save()
         cache = Storage()
         cache.delete("updates", {"topic":self.pagename})
@@ -153,26 +153,31 @@ def get_base():
             b[H] =  T.split(',')
     return b
 
+def runThreads(l):
+    l2 = []
+    for t in l:
+        l2.append(CleanupTematic(t, BASE[t]))
+        l2[-1].start()
+    for t in l2:
+        t.join()
+
 if __name__ == "__main__":
     # start point
     SITE = wikipedia.getSite()
     #CACHE = Storage("articles.db")    
     BASE = get_base()
-    COUNTER = ReplicsCounter()
-    
-    #COUNTER.countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
-    
+
     if len(sys.argv) >= 2: # got arguments in command line
         if sys.argv[1] == "stats" or sys.argv[1] == "all":
             A = AllAFI(sys.argv[1])
             A.run()
             sys.exit()
-        for i in sys.argv[1:]:
-            #j = unicode(i, "mbcs") # windows
-            j = unicode(i, locale.getpreferredencoding())
-            th = CleanupTematic(j, BASE[j])
-            th.start()
-    else:
-        for i in BASE:
-            th = CleanupTematic(i, BASE[i])
-            th.start()
+        uBASE = [unicode(i, locale.getpreferredencoding()) for i in sys.argv[1:]]
+        runThreads(uBASE)
+        print "fin"
+    else: # no arguments, full run
+        COUNTER = ReplicsCounter()
+        COUNTER.countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
+        runThreads(BASE)
+        A = AllAFI("all")
+        A.run()
