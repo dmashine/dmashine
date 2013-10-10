@@ -32,7 +32,7 @@ class ReplicsCounter():
                     if sline[:2] != "{{" and sline[:-2] != "}}":
                         replics += 1
                         #print "%s %s" % (replics, line)
-            print u"%s %s %s" % (s, sections[s], replics)
+            wikipedia.output( u"%s %s %s" % (s, sections[s], replics))
             self.cache.execute(u'UPDATE articles SET replics = %s WHERE name = "%s";' % (replics, self.cache.quote(s)))
     def countCat(self, catname):
         cat = catlib.Category(wikipedia.getSite(), catname)
