@@ -25,7 +25,7 @@ class AllAFI:
         self.afi_list_title = [self.cache.quote(_.title(withNamespace=False)) for _ in self.afi.articlesList()]
         
         for a in self.afi_list:
-            print a
+            wikipedia.output(a)
             for cat in a.categories():
                 self.cache.insert('category', (a.title(withNamespace=False), cat.title(withNamespace=False)))
 
@@ -33,7 +33,7 @@ class AllAFI:
         re = self.cache.cursor.execute(u"SELECT name FROM articles;")
         for l in re.fetchall():
             if l[0] not in self.afi_list_title:
-                print l[0]
+                wikipedia.output(l[0])
                 self.cache.delete('articles', {'name':l[0]})
 
     def update_stats(self):
