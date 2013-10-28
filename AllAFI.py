@@ -5,7 +5,27 @@
  License GNU GPL v3 / Beerware """
 
 import catlib, wikipedia, sys # pywikipedia and category module
+import httphelp
 from Storage import Storage
+
+class TemplateRandom:
+    """Class to form a random 5 articles in template"""
+    def __init__(self):
+        self.cache = Storage()
+    def _wikitext(self):
+        """Text for template"""
+        ex  = self.cache.cursor.execute("SELECT name FROM articles GROUP BY name ORDER BY RANDOM() LIMIT 5;").fetchall()
+        text = u"{{fmbox | text = <center>Статьи для доработки: [["
+        text += u"|]]; [[".join([_[0] for _ in ex])
+        text += u"|]].</center>}}<noinclude>[[Категория:Навигационные шаблоны:Для обсуждений]]</noinclude>"
+        return text
+    def save(self):
+        """Save text to template"""
+        site = wikipedia.getSite()
+        httphelp.save(site, text = self._wikitext(),
+            pagename = u"Шаблон:Случайные статьи с КУЛ",\
+            comment  = u"Обновление шаблона", \
+            minoredit = True, botflag = True, dry = False)
 
 class AllAFI:
     """module for AFI stats update"""
@@ -74,5 +94,7 @@ class AllAFI:
         self.update_stats()
 
 if __name__ == "__main__":
-    A = AllAFI(sys.argv[1])
-    A.run()
+    A = TemplateRandom()
+    print A._wikitext()
+    #A = AllAFI(sys.argv[1])
+    #A.run()
