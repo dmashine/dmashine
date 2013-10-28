@@ -94,7 +94,5 @@ class AllAFI:
         self.update_stats()
 
 if __name__ == "__main__":
-    A = TemplateRandom()
-    print A._wikitext()
-    #A = AllAFI(sys.argv[1])
-    #A.run()
+    A = AllAFI(sys.argv[1])
+    A.run()

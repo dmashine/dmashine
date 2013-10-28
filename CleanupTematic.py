@@ -11,7 +11,7 @@ import traceback, sys, locale
 import wikipedia
 import httphelp
 from Storage import Storage
-from AllAFI import AllAFI
+from AllAFI import AllAFI, TemplateRandom
 from ReplicsCounter import ReplicsCounter
 from threading import Thread
 from datetime import datetime, date
@@ -181,3 +181,5 @@ if __name__ == "__main__":
         runThreads(BASE)
         A = AllAFI("all")
         A.run()
+    T = TemplateRandom()
+    T.save()
