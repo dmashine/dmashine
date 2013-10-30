@@ -16,7 +16,7 @@ class TemplateRandom:
         """Text for template"""
         ex  = self.cache.cursor.execute("SELECT name FROM articles GROUP BY name ORDER BY RANDOM() LIMIT 5;").fetchall()
         text = u"{{fmbox | text = <center>Статьи для доработки: [["
-        text += u"|]]; [[".join([_[0] for _ in ex])
+        text += u"|]]; [[".join([_[0].replace("_", " ") for _ in ex])
         text += u"|]].</center>}}<noinclude>[[Категория:Навигационные шаблоны:Для обсуждений]]</noinclude>"
         return text
     def save(self):
