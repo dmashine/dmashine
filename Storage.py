@@ -28,8 +28,9 @@ class Storage(object):
         #print query
         while True: # returns if query done
             try:
-                r = self.cursor.execute(query)
-                self.conn.commit()
+                with L: # sqlite isn`t thread-safe so lets make it
+                    r = self.cursor.execute(query)
+                    self.conn.commit()
                 return r
             except sqlite3.IntegrityError:
                 return
@@ -90,3 +91,4 @@ class Storage(object):
         Just be sure any changes have been committed or they will be lost."""
         self.conn.commit()
         self.conn.close()
+L = Lock()
