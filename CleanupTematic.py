@@ -181,5 +181,4 @@ if __name__ == "__main__":
         runThreads(BASE)
         A = AllAFI("all")
         A.run()
-    T = TemplateRandom()
-    T.save()
+    TemplateRandom().save()

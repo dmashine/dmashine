@@ -10,11 +10,6 @@ from threading import Lock
 
 class Storage(object):
     """ Interface to sqlite."""
-    def __new__(cls):
-        """Makes it singleton"""
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Storage, cls).__new__(cls)
-        return cls.instance
 
     def __init__(self, name = "articles.db"):
         self.quote = lambda s: s.replace(" ", "_").replace('"', "'")
