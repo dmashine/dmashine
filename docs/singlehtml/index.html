@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dmashine 3.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="None" href="index.html#document-index" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="index.html#document-index">dmashine 3.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-s-documentation">
+<h1>Welcome to .&#8217;s documentation!<a class="headerlink" href="#welcome-to-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<span id="document-AllAFI"></span><div class="section" id="module-AllAFI">
+<span id="allafi-module"></span><h2>AllAFI Module<a class="headerlink" href="#module-AllAFI" title="Permalink to this headline">¶</a></h2>
+<p>loads all AFI to sqlite base, collects stats
+Author Drakosh &lt;<a class="reference external" href="mailto:cpsoft&#37;&#52;&#48;gmail&#46;com">cpsoft<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+License GNU GPL v3 / Beerware</p>
+<dl class="class">
+<dt id="AllAFI.AllAFI">
+<em class="property">class </em><tt class="descclassname">AllAFI.</tt><tt class="descname">AllAFI</tt><big>(</big><em>action</em><big>)</big><a class="headerlink" href="#AllAFI.AllAFI" title="Permalink to this definition">¶</a></dt>
+<dd><p>module for AFI stats update</p>
+<dl class="method">
+<dt id="AllAFI.AllAFI.load_all">
+<tt class="descname">load_all</tt><big>(</big><big>)</big><a class="headerlink" href="#AllAFI.AllAFI.load_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads all articles for improvement to sqlite table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AllAFI.AllAFI.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#AllAFI.AllAFI.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>entry point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AllAFI.AllAFI.update_stats">
+<tt class="descname">update_stats</tt><big>(</big><big>)</big><a class="headerlink" href="#AllAFI.AllAFI.update_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>prints stats to wikipedia page</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="AllAFI.TemplateRandom">
+<em class="property">class </em><tt class="descclassname">AllAFI.</tt><tt class="descname">TemplateRandom</tt><a class="headerlink" href="#AllAFI.TemplateRandom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to form a random 5 articles in template</p>
+<dl class="method">
+<dt id="AllAFI.TemplateRandom.save">
+<tt class="descname">save</tt><big>(</big><big>)</big><a class="headerlink" href="#AllAFI.TemplateRandom.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save text to template</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<span id="document-CategoryIntersect"></span><div class="section" id="module-CategoryIntersect">
+<span id="categoryintersect-module"></span><h2>CategoryIntersect Module<a class="headerlink" href="#module-CategoryIntersect" title="Permalink to this headline">¶</a></h2>
+<p>Class to iterate over category intersection in Wikipedia</p>
+<dl class="class">
+<dt id="CategoryIntersect.CategoryIntersect">
+<em class="property">class </em><tt class="descclassname">CategoryIntersect.</tt><tt class="descname">CategoryIntersect</tt><big>(</big><em>basecat</em>, <em>tagcat</em>, <em>tagdeep='5'</em>, <em>basedeep='5'</em>, <em>wikilang='ru'</em>, <em>wikifam='.wikipedia.org'</em><big>)</big><a class="headerlink" href="#CategoryIntersect.CategoryIntersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator over category (one or list) intersection.
+Uses toolserver to get a list.</p>
+<dl class="method">
+<dt id="CategoryIntersect.CategoryIntersect.next">
+<tt class="descname">next</tt><big>(</big><big>)</big><a class="headerlink" href="#CategoryIntersect.CategoryIntersect.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns next article in intersection</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="CategoryIntersect.CategoryIntersectException">
+<em class="property">exception </em><tt class="descclassname">CategoryIntersect.</tt><tt class="descname">CategoryIntersectException</tt><a class="headerlink" href="#CategoryIntersect.CategoryIntersectException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>just exception</p>
+</dd></dl>
+
+</div>
+<span id="document-CleanupTematic"></span><div class="section" id="module-CleanupTematic">
+<span id="cleanuptematic-module"></span><h2>CleanupTematic Module<a class="headerlink" href="#module-CleanupTematic" title="Permalink to this headline">¶</a></h2>
+<p>Скрипт разделяет статьи, предложенные к улучшению в ru.wikipedia
+по тематическим страницам.
+Автор: <a class="reference external" href="http://ru.wikipedia.org/wiki">http://ru.wikipedia.org/wiki</a>/Участник:Drakosh
+Лицензирование: GNU GPL v3 / Beerware.
+Для длинных списков:</p>
+<blockquote>
+<div>&lt;div style=&#8221;height:200px; overflow:auto; padding:3px&#8221;&gt;&lt;/div&gt;</div></blockquote>
+<dl class="class">
+<dt id="CleanupTematic.CleanupTematic">
+<em class="property">class </em><tt class="descclassname">CleanupTematic.</tt><tt class="descname">CleanupTematic</tt><big>(</big><em>pagename</em>, <em>catname</em><big>)</big><a class="headerlink" href="#CleanupTematic.CleanupTematic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<p>One thread of bot that cleans one theme</p>
+<dl class="method">
+<dt id="CleanupTematic.CleanupTematic.addline">
+<tt class="descname">addline</tt><big>(</big><em>article</em><big>)</big><a class="headerlink" href="#CleanupTematic.CleanupTematic.addline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets article name. Adds to self.text one line of table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CleanupTematic.CleanupTematic.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#CleanupTematic.CleanupTematic.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Получает тематику и родительскую категорию
+Формирует и сохраняет тематическую страницу</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CleanupTematic.CleanupTematic.save">
+<tt class="descname">save</tt><big>(</big><em>minoredit=True</em>, <em>botflag=True</em>, <em>dry=False</em><big>)</big><a class="headerlink" href="#CleanupTematic.CleanupTematic.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves data to wikipedia page</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CleanupTematic.get_base">
+<tt class="descclassname">CleanupTematic.</tt><tt class="descname">get_base</tt><big>(</big><big>)</big><a class="headerlink" href="#CleanupTematic.get_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets topic and categories from online</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CleanupTematic.runThreads">
+<tt class="descclassname">CleanupTematic.</tt><tt class="descname">runThreads</tt><big>(</big><em>l</em><big>)</big><a class="headerlink" href="#CleanupTematic.runThreads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<span id="document-IncubatorStat"></span><div class="section" id="module-IncubatorStat">
+<span id="incubatorstat-module"></span><h2>IncubatorStat Module<a class="headerlink" href="#module-IncubatorStat" title="Permalink to this headline">¶</a></h2>
+<p>Скрипт для обновления [[Википедия:Список Википедий в инкубаторе]]
+Автор: <a class="reference external" href="http://ru.wikipedia.org/wiki">http://ru.wikipedia.org/wiki</a>/Участник:Drakosh
+Лицензирование: GNU GPL v3 / Beerware.</p>
+<dl class="exception">
+<dt id="IncubatorStat.IncubatorException">
+<em class="property">exception </em><tt class="descclassname">IncubatorStat.</tt><tt class="descname">IncubatorException</tt><a class="headerlink" href="#IncubatorStat.IncubatorException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>just an exception</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="IncubatorStat.WikiInfo">
+<em class="property">class </em><tt class="descclassname">IncubatorStat.</tt><tt class="descname">WikiInfo</tt><big>(</big><em>cat</em><big>)</big><a class="headerlink" href="#IncubatorStat.WikiInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Info about a wiki in incubator</p>
+</dd></dl>
+
+</div>
+<span id="document-LakesBot"></span><div class="section" id="module-LakesBot">
+<span id="lakesbot-module"></span><h2>LakesBot Module<a class="headerlink" href="#module-LakesBot" title="Permalink to this headline">¶</a></h2>
+<p>Bot to load lake info from Openstreetmap and GVR</p>
+<dl class="function">
+<dt id="LakesBot.LakesList">
+<tt class="descclassname">LakesBot.</tt><tt class="descname">LakesList</tt><big>(</big><big>)</big><a class="headerlink" href="#LakesBot.LakesList" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns  list of lakes from Openstreetmap and GVR</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="LakesBot.NumberOfSame">
+<tt class="descclassname">LakesBot.</tt><tt class="descname">NumberOfSame</tt><big>(</big><em>glist</em>, <em>OSMid</em><big>)</big><a class="headerlink" href="#LakesBot.NumberOfSame" title="Permalink to this definition">¶</a></dt>
+<dd><p>refactor this</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="LakesBot.decdeg2dms">
+<tt class="descclassname">LakesBot.</tt><tt class="descname">decdeg2dms</tt><big>(</big><em>dd</em><big>)</big><a class="headerlink" href="#LakesBot.decdeg2dms" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8221; <a class="reference external" href="http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python">http://stackoverflow.com/questions/2579535/how-to-convert-dd-to-dms-in-python</a></p>
+</dd></dl>
+
+</div>
+<span id="document-OSMAPI"></span><div class="section" id="module-OSMAPI">
+<span id="osmapi-module"></span><h2>OSMAPI Module<a class="headerlink" href="#module-OSMAPI" title="Permalink to this headline">¶</a></h2>
+<p>Module for OpenStreetmap API</p>
+<dl class="exception">
+<dt id="OSMAPI.OSMAPIException">
+<em class="property">exception </em><tt class="descclassname">OSMAPI.</tt><tt class="descname">OSMAPIException</tt><a class="headerlink" href="#OSMAPI.OSMAPIException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>Just exception</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="OSMAPI.Search">
+<em class="property">class </em><tt class="descclassname">OSMAPI.</tt><tt class="descname">Search</tt><big>(</big><em>search</em><big>)</big><a class="headerlink" href="#OSMAPI.Search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Searches openstreetmap database</p>
+<dl class="method">
+<dt id="OSMAPI.Search.get_data">
+<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#OSMAPI.Search.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data for OSM object</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<span id="document-ReplicsCounter"></span><div class="section" id="module-ReplicsCounter">
+<span id="replicscounter-module"></span><h2>ReplicsCounter Module<a class="headerlink" href="#module-ReplicsCounter" title="Permalink to this headline">¶</a></h2>
+<p>Author Drakosh &lt;<a class="reference external" href="mailto:cpsoft&#37;&#52;&#48;gmail&#46;com">cpsoft<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+License GNU GPL v3 / Beerware</p>
+<dl class="class">
+<dt id="ReplicsCounter.ReplicsCounter">
+<em class="property">class </em><tt class="descclassname">ReplicsCounter.</tt><tt class="descname">ReplicsCounter</tt><a class="headerlink" href="#ReplicsCounter.ReplicsCounter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="ReplicsCounter.ReplicsCounter.countCat">
+<tt class="descname">countCat</tt><big>(</big><em>catname</em><big>)</big><a class="headerlink" href="#ReplicsCounter.ReplicsCounter.countCat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ReplicsCounter.ReplicsCounter.countPage">
+<tt class="descname">countPage</tt><big>(</big><em>page</em><big>)</big><a class="headerlink" href="#ReplicsCounter.ReplicsCounter.countPage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Counts repics at AFI page</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReplicsCounter.ReplicsCounter.replicsPage">
+<tt class="descname">replicsPage</tt><big>(</big><em>pagename</em><big>)</big><a class="headerlink" href="#ReplicsCounter.ReplicsCounter.replicsPage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<span id="document-Storage"></span><div class="section" id="module-Storage">
+<span id="storage-module"></span><h2>Storage Module<a class="headerlink" href="#module-Storage" title="Permalink to this headline">¶</a></h2>
+<p>Автор: <a class="reference external" href="http://ru.wikipedia.org/wiki">http://ru.wikipedia.org/wiki</a>/Участник:Drakosh
+Лицензирование: GNU GPL v3 / Beerware.</p>
+<dl class="class">
+<dt id="Storage.Storage">
+<em class="property">class </em><tt class="descclassname">Storage.</tt><tt class="descname">Storage</tt><big>(</big><em>name='articles.db'</em><big>)</big><a class="headerlink" href="#Storage.Storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Interface to sqlite.</p>
+<dl class="method">
+<dt id="Storage.Storage.create">
+<tt class="descname">create</tt><big>(</big><em>table</em>, <em>col</em><big>)</big><a class="headerlink" href="#Storage.Storage.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create table with columns col</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Storage.Storage.delete">
+<tt class="descname">delete</tt><big>(</big><em>table</em>, <em>cond=None</em><big>)</big><a class="headerlink" href="#Storage.Storage.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes rows from table, by condition cond.
+Cond is dict: col = value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Storage.Storage.execute">
+<tt class="descname">execute</tt><big>(</big><em>query</em><big>)</big><a class="headerlink" href="#Storage.Storage.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Storage.Storage.findone">
+<tt class="descname">findone</tt><big>(</big><em>table</em>, <em>cond=None</em>, <em>what=None</em><big>)</big><a class="headerlink" href="#Storage.Storage.findone" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns one row (columns what) from table, by condition cond.
+Cond is dict: col = value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Storage.Storage.insert">
+<tt class="descname">insert</tt><big>(</big><em>table</em>, <em>values</em><big>)</big><a class="headerlink" href="#Storage.Storage.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a row of values to table</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<span id="document-gvr"></span><div class="section" id="module-gvr">
+<span id="gvr-module"></span><h2>gvr Module<a class="headerlink" href="#module-gvr" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="gvr.GVRException">
+<em class="property">exception </em><tt class="descclassname">gvr.</tt><tt class="descname">GVRException</tt><a class="headerlink" href="#gvr.GVRException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>just an exception</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gvr.GVRList">
+<em class="property">class </em><tt class="descclassname">gvr.</tt><tt class="descname">GVRList</tt><big>(</big><em>bo=''</em>, <em>rb=''</em>, <em>subb=''</em>, <em>hep=''</em>, <em>wot=''</em>, <em>name=''</em>, <em>num=''</em>, <em>loc=''</em>, <em>start=0</em><big>)</big><a class="headerlink" href="#gvr.GVRList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents list of GVR objects.
+init parameters as in official site, may be omitted</p>
+<dl class="method">
+<dt id="gvr.GVRList.get_data">
+<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#gvr.GVRList.get_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gvr.GVRList.next">
+<tt class="descname">next</tt><big>(</big><big>)</big><a class="headerlink" href="#gvr.GVRList.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gvr.GVRList.test">
+<tt class="descname">test</tt><big>(</big><big>)</big><a class="headerlink" href="#gvr.GVRList.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gvr.GVRList.update">
+<tt class="descname">update</tt><big>(</big><em>bo=''</em>, <em>rb=''</em>, <em>subb=''</em>, <em>hep=''</em>, <em>wot=''</em>, <em>name=''</em>, <em>num=''</em>, <em>loc=''</em><big>)</big><a class="headerlink" href="#gvr.GVRList.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>updates one gvrlist with other data. keeps sorted</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gvr.GVRObject">
+<em class="property">class </em><tt class="descclassname">gvr.</tt><tt class="descname">GVRObject</tt><big>(</big><em>card</em><big>)</big><a class="headerlink" href="#gvr.GVRObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents object of GVR site.</p>
+<dl class="method">
+<dt id="gvr.GVRObject.get_data">
+<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#gvr.GVRObject.get_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gvr.GVRObject.update">
+<tt class="descname">update</tt><big>(</big><em>upd</em><big>)</big><a class="headerlink" href="#gvr.GVRObject.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>updates one gvr data with other data.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<span id="document-httphelp"></span><div class="section" id="module-httphelp">
+<span id="httphelp-module"></span><h2>httphelp Module<a class="headerlink" href="#module-httphelp" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="httphelp.HttpHelpException">
+<em class="property">exception </em><tt class="descclassname">httphelp.</tt><tt class="descname">HttpHelpException</tt><a class="headerlink" href="#httphelp.HttpHelpException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>just exception</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="httphelp.httphelp">
+<em class="property">class </em><tt class="descclassname">httphelp.</tt><tt class="descname">httphelp</tt><a class="headerlink" href="#httphelp.httphelp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to read lines with httplib</p>
+<dl class="method">
+<dt id="httphelp.httphelp.lines">
+<tt class="descname">lines</tt><big>(</big><em>method='POST'</em><big>)</big><a class="headerlink" href="#httphelp.httphelp.lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to server, reads and returns lines</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="httphelp.save">
+<tt class="descclassname">httphelp.</tt><tt class="descname">save</tt><big>(</big><em>site</em>, <em>text=''</em>, <em>pagename=None</em>, <em>filename=None</em>, <em>comment=None</em>, <em>minoredit=True</em>, <em>botflag=True</em>, <em>dry=False</em><big>)</big><a class="headerlink" href="#httphelp.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper fun to save text to wiki</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html#document-index">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-AllAFI">AllAFI Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-CategoryIntersect">CategoryIntersect Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-CleanupTematic">CleanupTematic Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-IncubatorStat">IncubatorStat Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-LakesBot">LakesBot Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-OSMAPI">OSMAPI Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-ReplicsCounter">ReplicsCounter Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-Storage">Storage Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-gvr">gvr Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-httphelp">httphelp Module</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="index.html#document-index">dmashine 3.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Drakosh.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

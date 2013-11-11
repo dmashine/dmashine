@@ -6,6 +6,7 @@
 
 import sqlite3
 from time import sleep
+from threading import Lock
 
 class Storage(object):
     """ Interface to sqlite."""
