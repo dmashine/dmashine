@@ -10,6 +10,12 @@ from threading import Lock
 
 class Storage(object):
     """ Interface to sqlite."""
+    
+    def __new__(cls):
+        """Makes it singleton"""
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Storage, cls).__new__(cls)
+        return cls.instance
 
     def __init__(self, name = "articles.db"):
         self.quote = lambda s: s.replace(" ", "_").replace('"', "'")
@@ -21,18 +27,18 @@ class Storage(object):
     
     def execute(self, query):
         """Executes"""
-        #print query
-        while True: # returns if query done
-            try:
-                with L: # sqlite isn`t thread-safe so lets make it
-                    r = self.cursor.execute(query)
-                    self.conn.commit()
-                return r
-            except sqlite3.IntegrityError:
-                return
-            except sqlite3.ProgrammingError:
-                print u"execute error, retry!"
-                sleep(3)
+        print query
+#        while True: # returns if query done
+        try:
+#            with L: # sqlite isn`t thread-safe so lets make it
+             r = self.cursor.execute(query)
+             self.conn.commit()
+             return r
+        except sqlite3.IntegrityError:
+            return
+#            except sqlite3.ProgrammingError:
+#                print u"execute error, retry!"
+#                sleep(3)
     
     def create(self, table, col):
         """Create table with columns col"""

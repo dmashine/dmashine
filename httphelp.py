@@ -27,7 +27,10 @@ class httphelp:
             print response.status, response.reason
             raise HttpHelpException(u"Response status %s %s" % (response.status, response.reason))
 
-        return [l.decode(self.codepage, "ignore") for l in response.read().splitlines()]
+        r = [l.decode(self.codepage, "ignore") for l in response.read().splitlines()]
+        if r == []:
+            raise HttpHelpException(u"empty")
+        return r
     def __del__(self):
         self.conn.close()
 

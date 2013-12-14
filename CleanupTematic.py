@@ -120,6 +120,7 @@ class CleanupTematic(Thread):
     def run(self):
         """Получает тематику и родительскую категорию
         Формирует и сохраняет тематическую страницу"""
+        self.cache = Storage()
         try:
             self.text  = u'{|class="standard sortable" width="75%"\n'
             self.text += u"!Статья||Дата КУЛ||{{comment|Реплик|Строк в обсуждении}}||{{comment|Изменение|объём в символах}}||Правок сделано\n"
@@ -132,6 +133,7 @@ class CleanupTematic(Thread):
             wikipedia.output(u"Ошибка получения данных тематики %s: %s"% \
                                     (self.pagename, e))
             traceback.print_tb(sys.exc_info()[2])
+            self.cache = None
             self.run()
             return
         self.text += "|}"
@@ -158,6 +160,7 @@ def runThreads(l):
     for t in l:
         l2.append(CleanupTematic(t, BASE[t]))
         l2[-1].start()
+#        l2[-1].join()
     for t in l2:
         t.join()
 
@@ -169,16 +172,13 @@ if __name__ == "__main__":
 
     if len(sys.argv) >= 2: # got arguments in command line
         if sys.argv[1] == "stats" or sys.argv[1] == "all":
-            A = AllAFI(sys.argv[1])
-            A.run()
+            AllAFI(sys.argv[1]).run()
             sys.exit()
         uBASE = [unicode(i, locale.getpreferredencoding()) for i in sys.argv[1:]]
         runThreads(uBASE)
         print "fin"
     else: # no arguments, full run
-        COUNTER = ReplicsCounter()
-        COUNTER.countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
+        #ReplicsCounter().countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
         runThreads(BASE)
-        A = AllAFI("all")
-        A.run()
+        AllAFI("all").run()
     TemplateRandom().save()
