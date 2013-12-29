@@ -7,12 +7,12 @@
 import wikipedia, os, sys, time, math
 from catlib import Category
 from Storage import Storage
-from threading import Thread
+#from threading import Thread
 
-class Evaluate(Thread):
+class Evaluate():
     """Class to evaluate an article"""
     def __init__(self, pagename):
-        Thread.__init__(self)
+        #Thread.__init__(self)
         self.pagename = pagename
         site = wikipedia.getSite()
         self.page = wikipedia.Page(site, pagename)
@@ -176,8 +176,7 @@ if __name__ == "__main__":
         for p in cat.articles(recurse=3):
         #    p = site.randompage()
             if (p.namespace() == 0) and (not p.isDisambig()) and (not p.isRedirectPage()):
-                l = Evaluate(p.title())
-                l.start()
+                Evaluate(p.title()).run()
                 x += 1
                 print x
                 #if x == 10:
