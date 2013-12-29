@@ -99,20 +99,20 @@ class Corellations():
                 self.data[i].append(l[i])
     def print_stats(self):
         #print self.data
-        print u"Всего статей %s" % len(self.data[1])
+        stats =  u"Articles count %s \r\n" % len(self.data[1])
         val = ["", "templ", "edi", "len", "cat", "links", "refs", "img", "iwiki", "sect", "users"]
 
 
 
-        print "          math avg     root mean      deviation        max    min"
+        stats += "          math avg     root mean      deviation        max    min \r\n"
         for i in xrange(1, 11):
-            print "%8s: %-12.10g %-12.10g  %-12.10g %8g %6g"% (val[i], self.average(self.data[i]), self.sq_avg(self.data[i]), self.sq_dev(self.data[i]), max(self.data[i]), min(self.data[i]))
+            stats += "%8s: %-12.10g %-12.10g  %-12.10g %8g %6g \r\n"% (val[i], self.average(self.data[i]), self.sq_avg(self.data[i]), self.sq_dev(self.data[i]), max(self.data[i]), min(self.data[i]))
         r = ""
-        print
-        print "Corellations table"
+        stats += "\r\n"
+        stats += "Corellations table \r\n"
         for v in val:
             r += "%10s"%(v)
-        print r
+        stats += r+"\r\n"
         r = ""
         p = {}
         for i in xrange(1, 11):
@@ -121,14 +121,15 @@ class Corellations():
                 r+="%-10.4g " % d
                 if i > j:
                     p["%s-%s"%(val[i], val[j])] = d
-            print "%8s %s"%(val[i], r)
+            stats += "%8s %s\r\n"%(val[i], r)
             r=""
-        print
-        print " Maximum values           | Minimum values"
+        stats += "\r\n"
+        stats += " Maximum values           | Minimum values \r\n"
         up = sorted(p.items(), key=lambda x: -abs(x[1]))
         #print up[0]
         for l in xrange(0, 12):
-            print "%12s %6.12s | %12s %6.12s" % (up[l][0], up[l][1], up[-l-1][0], up[-l-1][1])
+            stats += "%12s %6.12s | %12s %6.12s \r\n" % (up[l][0], up[l][1], up[-l-1][0], up[-l-1][1])
+        return stats
     def print_sel(self):
         """Распечатываем максимальные и минимальные статьи"""
        
@@ -156,14 +157,16 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2:
         if sys.argv[1] == "stats":
             while True:
+                p = Corellations().print_stats()
                 os.system('clear')
-                Corellations().print_stats()
+                print p
                 time.sleep(10)
         else:
             while True:
                 os.system('clear')
                 Corellations().print_sel()
                 time.sleep(10)
+
     else:
         site = wikipedia.getSite()
         cat = Category(site, u"Категория:Музыка")
