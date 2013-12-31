@@ -178,7 +178,7 @@ if __name__ == "__main__":
         runThreads(uBASE)
         print "fin"
     else: # no arguments, full run
-        #ReplicsCounter().countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
+        ReplicsCounter().countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
         runThreads(BASE)
         AllAFI("all").run()
     TemplateRandom().save()

@@ -172,7 +172,6 @@ if __name__ == "__main__":
         cat = Category(site, u"Категория:Музыка")
         x=0
         #while True:
-        #for p in cat.articlesList(recurse=3):
         for p in cat.articles(recurse=3):
         #    p = site.randompage()
             if (p.namespace() == 0) and (not p.isDisambig()) and (not p.isRedirectPage()):
