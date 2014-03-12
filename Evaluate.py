@@ -173,14 +173,16 @@ if __name__ == "__main__":
         x=0
         #while True:
         for p in cat.articles(recurse=3):
+            print p
+            p.purgeCache()
         #    p = site.randompage()
-            if (p.namespace() == 0) and (not p.isDisambig()) and (not p.isRedirectPage()):
-                Evaluate(p.title()).run()
-                x += 1
-                print x
-                #if x == 10:
-                #    time.sleep(10)
-                #    x = 0
+        #    if (p.namespace() == 0) and (not p.isDisambig()) and (not p.isRedirectPage()):
+        #        Evaluate(p.title()).run()
+        #        x += 1
+        #        print x
+        #        #if x == 10:
+        #        #    time.sleep(10)
+        #        #    x = 0
 
 
 # SELECT name, len from quality where (len < (select avg(len) from quality) / 4 and cats < (select avg(len) from quality) / 4) order by len;

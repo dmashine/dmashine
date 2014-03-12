@@ -121,6 +121,7 @@ class CleanupTematic(Thread):
         """Получает тематику и родительскую категорию
         Формирует и сохраняет тематическую страницу"""
         self.cache = Storage()
+        c = 0
         try:
             self.text  = u'{|class="standard sortable" width="75%"\n'
             self.text += u"!Статья||Дата КУЛ||{{comment|Реплик|Строк в обсуждении}}||{{comment|Изменение|объём в символах}}||Правок сделано\n"
@@ -128,6 +129,7 @@ class CleanupTematic(Thread):
             ci = CategoryIntersect('Википедия:Статьи для срочного улучшения', \
                                     self.catname)
             for name in ci:
+                c += 1
                 self.addline(name) # дописали текст
         except Exception, e:
             wikipedia.output(u"Ошибка получения данных тематики %s: %s"% \
@@ -138,10 +140,11 @@ class CleanupTematic(Thread):
             return
         self.text += "|}"
         self.text += u"<noinclude>[[Категория:Википедия:Списки статей к улучшению]]</noinclude>"
-        self.save()
-        cache = Storage()
-        cache.delete("updates", {"topic":self.pagename})
-        cache.insert("updates", \
+        if c > 0:
+            self.save()
+            cache = Storage()
+            cache.delete("updates", {"topic":self.pagename})
+            cache.insert("updates", \
                     (self.pagename, datetime.date(datetime.now()), len(ci)))
 
 def get_base():
