@@ -179,6 +179,7 @@ if __name__ == "__main__":
             sys.exit()
         uBASE = [unicode(i, locale.getpreferredencoding()) for i in sys.argv[1:]]
         runThreads(uBASE)
+        AllAFI("stats").run()
         print "fin"
     else: # no arguments, full run
         ReplicsCounter().countCat(u"Категория:Википедия:Незакрытые обсуждения статей для улучшения")
