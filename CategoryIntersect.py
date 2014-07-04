@@ -21,7 +21,7 @@ class CategoryIntersect:
             conn = httphelp()
             #conn.server     = "toolserver.org"
             #conn.scriptname = "/~daniel/WikiSense/CategoryIntersect.php"
-            conn.server = "http://tools.wmflabs.org"
+            conn.server = "tools.wmflabs.org"
             conn.scriptname = "/catscan2/catscan2.php"
             conn.parameters = { 'wikilang': wikilang,   \
                                 'wikifam': wikifam,     \
