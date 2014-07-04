@@ -19,8 +19,10 @@ class CategoryIntersect:
         for tag in catlist:
             tag = tag.encode('utf-8', 'ignore')
             conn = httphelp()
-            conn.server     = "toolserver.org"
-            conn.scriptname = "/~daniel/WikiSense/CategoryIntersect.php"
+            #conn.server     = "toolserver.org"
+            #conn.scriptname = "/~daniel/WikiSense/CategoryIntersect.php"
+            conn.server = "http://tools.wmflabs.org"
+            conn.scriptname = "/catscan2/catscan2.php"
             conn.parameters = { 'wikilang': wikilang,   \
                                 'wikifam': wikifam,     \
                                 'basecat': basecat,     \
