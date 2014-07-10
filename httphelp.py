@@ -19,8 +19,7 @@ class httphelp:
         p = urllib.urlencode(self.parameters)        
         headers = {"Content-type": "application/x-www-form-urlencoded", \
                    "Accept": "text/plain"}
-
-        self.conn.request(method, self.scriptname, p, headers)
+        self.conn.request(method, self.scriptname+"?"+ p, "", headers)
         response = self.conn.getresponse()
         #print response.status, response.reason
         if response.status != 200:
