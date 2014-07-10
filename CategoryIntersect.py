@@ -10,7 +10,7 @@ class CategoryIntersect:
     """Iterator over category (one or list) intersection.
     Uses toolserver to get a list."""
     def __init__(self, basecat, tagcat, depth='12', \
-                    lang='ru', project = 'wikipedia'):
+                    lang='ru', project='wikipedia'):
         self.articles = []
         if type(tagcat) == type(""):
             catlist = [tagcat]
@@ -31,17 +31,18 @@ class CategoryIntersect:
                                'start': '0',                         \
                                'redirects' : ''}
             conn.codepage = "utf-8"
-            lines = conn.lines(method = "GET")
+            lines = conn.lines(method="GET")
             while len(lines) != 0:
                 data = lines.pop(0) # this deletes item.
-                if (data.find(u"Database Error")>0): # check for db error
+                if data.find(u"Database Error") > 0: # check for db error
                     # do i need this?
                     raise CategoryIntersectException(u"Database error")
-                if (data.find("[[") == -1) or (data.find("]]") == -1) or (data.find("Category") > 1):
+                if (data.find("[[") == -1) or (data.find("]]") == -1) \
+                    or (data.find("Category") > 1):
                     continue
                 d = data[data.find("[[")+2:data.find("]]")]
                 d = d[:d.find("|")]
-                if (not d in self.articles):
+                if not d in self.articles:
                     self.articles += [d]
         self.articles.sort()
 
